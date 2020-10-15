@@ -1,0 +1,22 @@
+version: "3.3"
+services:
+
+  geoserver:
+    image: '${DOCKER_IMAGE_GEOSERVER?Variable not set}:${TAG-latest}'
+    build:
+      context: ./geoserver
+
+
+  backend:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    depends_on:
+      - geoserver
+    env_file:
+      - .env
+    environment:
+      - SERVER_NAME=${DOMAIN?Variable not set}
+      - SERVER_HOST=https://${DOMAIN?Variable not set}
+    build:
+      context: ./backend
+      dockerfile: backend.dockerfile
+

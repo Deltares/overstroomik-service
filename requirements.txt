@@ -1,0 +1,4 @@
+uvicorn
+fastapi
+pydantic[dotenv]
+httpx==0.16.*
