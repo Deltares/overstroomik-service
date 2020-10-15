@@ -3,19 +3,11 @@ overstroomik-service
 ====================
 
 
-.. image:: https://img.shields.io/pypi/v/overstroomik_service.svg
-        :target: https://pypi.python.org/pypi/overstroomik_service
+.. image:: https://travis-ci.com/Deltares/overstroomik-service.svg?branch=master
+    :target: https://travis-ci.com/Deltares/overstroomik-service
 
-.. image:: https://img.shields.io/travis/evetion/overstroomik_service.svg
-        :target: https://travis-ci.com/evetion/overstroomik_service
-
-.. image:: https://readthedocs.org/projects/overstroomik-service/badge/?version=latest
-        :target: https://overstroomik-service.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-
-
-.. image:: https://pyup.io/repos/github/evetion/overstroomik_service/shield.svg
-     :target: https://pyup.io/repos/github/evetion/overstroomik_service/
+.. image:: https://pyup.io/repos/github/Deltares/overstroomik-service/shield.svg
+     :target: https://pyup.io/repos/github/Deltares/overstroomik-service/
      :alt: Updates
 
 
