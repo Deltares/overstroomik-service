@@ -5,7 +5,10 @@ services:
     image: '${DOCKER_IMAGE_GEOSERVER?Variable not set}:${TAG-latest}'
     build:
       context: ./geoserver
-
+    volumes:
+      - ./geoserver/data_dir:/var/local/geoserver
+    ports:
+      - 8080:8080
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
@@ -19,4 +22,10 @@ services:
     build:
       context: ./backend
       dockerfile: backend.dockerfile
-
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-false}
+    volumes:
+      - ./backend:/app
+    command: /start-reload.sh
+    ports:
+      - "8000:80"

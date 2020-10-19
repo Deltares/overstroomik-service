@@ -10,35 +10,16 @@ overstroomik-service
      :target: https://pyup.io/repos/github/Deltares/overstroomik-service/
      :alt: Updates
 
-
-
 Kubernetes Deployment for overstroomik backend
 
-
-* Free software: MIT license
-* Documentation: https://overstroomik-service.readthedocs.io.
-
-Installation
-------------
-pip install -r requirements_dev.txt
+* backend folder for Python app
+* etl folder for data migration and geoserver configuration
+* geoserver folder for GeoServer installation
 
 Running
--------
-"make run" or "uvicorn overstroomik_service.main:app --reload"
+=======
 
-Testing
--------
-"make test" or "pytest"
+We make use of Docker and Docker-compose::
 
-Features
---------
+    docker-compose up -d
 
-* TODO
-
-Credits
--------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage

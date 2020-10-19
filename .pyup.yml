@@ -3,3 +3,5 @@
 
 schedule: every week
 update: insecure
+requirements:
+  - backend/requirements_dev.txt
