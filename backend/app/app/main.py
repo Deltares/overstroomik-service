@@ -3,8 +3,8 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .config import settings
-from .models import Data, Response, WebService, Location
+from app.config import settings
+from app.models import Data, Response, WebService, Location
 
 app = FastAPI()
 app.add_middleware(
