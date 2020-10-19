@@ -25,7 +25,7 @@ services:
       args:
         INSTALL_DEV: ${INSTALL_DEV-false}
     volumes:
-      - ./backend/app:/app
+      - ./backend:/app
     command: /start-reload.sh
     ports:
       - "8000:80"
