@@ -26,12 +26,15 @@ def by_location(
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
 ) -> FloodInfo:
+    # TODO
+    # Derive location
+    # Find location details in geoserver
     return FloodInfo(
-        webservice=Webservice(),
+        webservice=Webservice(),  # to be filled with eventual errors
         location=Location(
             search_field=search_field, latitude=latitude, longitude=longitude
         ),
-        data=Data(),
+        data=Data(),  # to be filled with data from geoserver
     )
 
 
