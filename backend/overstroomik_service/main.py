@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from overstroomik_service.config import settings
-from overstroomik_service.models import Data, Response, WebService, Location
+from overstroomik_service.auto_models import Data, FloodInfo, Webservice, Location
 
 app = FastAPI()
 app.add_middleware(
@@ -20,16 +20,22 @@ async def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
-
-
-@app.post("/location", response_model=Response)
-async def dataservice(location: Location):
-    # location.resolve()
-    # something with data
-    return Response(location=location)
+@app.get("/by_location", response_model=FloodInfo)
+def by_location(
+    search_field: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+) -> FloodInfo:
+    # TODO
+    # Derive location
+    # Find location details in geoserver
+    return FloodInfo(
+        webservice=Webservice(),  # to be filled with eventual errors
+        location=Location(
+            search_field=search_field, latitude=latitude, longitude=longitude
+        ),
+        data=Data(),  # to be filled with data from geoserver
+    )
 
 
 if __name__ == "__main__":
