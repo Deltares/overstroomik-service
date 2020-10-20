@@ -1,4 +1,3 @@
-# Ignore everything in this directory
-*
-# Except this file
-!.gitignore
+version https://git-lfs.github.com/spec/v1
+oid sha256:453796db1adea56bc5500faad94c7096e6af046deb7512b72c9b301e09eb6805
+size 74
