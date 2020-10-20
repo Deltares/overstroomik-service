@@ -86,3 +86,7 @@ install: clean ## install the package to the active Python's site-packages
 
 run:
 	uvicorn overstroomik_service.main:app
+
+generate:  # Autogenerate the models based on openAPI spec
+	wget --output-document=openapi.yaml "https://app.swaggerhub.com/apiproxy/registry/overstroomik/overstroomik.nl/1.0.0?resolved=true&pretty=true"
+	datamodel-codegen --input openapi.yaml --output overstroomik_service/auto_models.py
