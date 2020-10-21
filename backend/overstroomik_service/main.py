@@ -13,6 +13,7 @@ from overstroomik_service.pdok import PDOK
 from overstroomik_service.config import settings
 from overstroomik_service.auto_models import Data, FloodInfo, Webservice, Location
 
+WS_VERSION = 0.1
 ERROR_GENERAL_NOER = "no-error"
 ERROR_GENERAL_422 = "No valid input for search_field or latitude and longitude"
 
@@ -27,7 +28,7 @@ app.add_middleware(
 
 @app.get("/")
 async def read_root():
-    return Webservice(version=settings.WS_VERSION, status=ERROR_GENERAL_NOER)
+    return Webservice(version=WS_VERSION, status=ERROR_GENERAL_NOER)
 
 
 @app.get('/by_rd', response_model=FloodInfo)
@@ -37,7 +38,7 @@ async def by_rd(x: Optional[float] = None, y: Optional[float] = None) -> FloodIn
     data = Data()
 
     return FloodInfo(
-        webservice=Webservice(version=settings.WS_VERSION, status=ERROR_GENERAL_NOER),
+        webservice=Webservice(version=WS_VERSION, status=ERROR_GENERAL_NOER),
         location=Location(),
         data=data
     )
@@ -71,7 +72,7 @@ async def by_location(
 
     # Find location details in geoserver
     return FloodInfo(
-        webservice=Webservice(version=settings.WS_VERSION, status=status),
+        webservice=Webservice(version=WS_VERSION, status=status),
         location=location,
         data=data
     )
