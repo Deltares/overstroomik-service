@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.backend.name }}
+  labels:
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+{{- if not .Values.backend.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ .Values.backend.name }}
+  template:
+    metadata:
+    {{- with .Values.backend.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        app: {{ .Values.backend.name }}
+    spec:
+      containers:
+        - name: overstroomik-backend
+          image: "{{ .Values.images.backend }}:{{ .Values.images.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.images.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: {{ .Values.backend.geoserver_env }}
+              value: {{ .Values.geoserver.name }}:8080
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}

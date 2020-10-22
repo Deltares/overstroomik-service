@@ -1,0 +1,28 @@
+{{- if .Values.geoserver.autoscaling.enabled }}
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Values.geoserver.name }}
+  labels:
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.geoserver.name }}
+  minReplicas: {{ .Values.geoserver.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.geoserver.autoscaling.maxReplicas }}
+  metrics:
+  {{- if .Values.geoserver.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        targetAverageUtilization: {{ .Values.geoserver.autoscaling.targetCPUUtilizationPercentage }}
+  {{- end }}
+  {{- if .Values.geoserver.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        targetAverageUtilization: {{ .Values.geoserver.autoscaling.targetMemoryUtilizationPercentage }}
+  {{- end }}
+{{- end }}
