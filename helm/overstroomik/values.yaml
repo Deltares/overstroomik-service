@@ -6,7 +6,7 @@ replicaCount: 1
 
 images:
   geoserver: deltares/overstroomik-geoserver
-  backend: deltares/overstroomik-backend
+  backend: deltares/overstroomik-service
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   tag: "latest"
