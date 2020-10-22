@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.geoserver.name }}
+  labels:
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  type: {{ .Values.geoserver.service.type }}
+  ports:
+    - port: {{ .Values.geoserver.service.port }}
+      targetPort: 8080
+      protocol: TCP
+  selector:
+    app: {{ .Values.geoserver.name }}

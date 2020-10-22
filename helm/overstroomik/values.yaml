@@ -1,0 +1,62 @@
+# Default values for overstroomik.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+images:
+  geoserver: deltares/overstroomik-geoserver
+  backend: deltares/overstroomik-backend
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "latest"
+  imagePullSecrets: []
+
+geoserver:
+  name: "overstroomik-geoserver"
+  podAnnotations: {}
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  resources: {}
+
+backend:
+  name: "overstroomik-backend"
+  podAnnotations: {}
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+    # targetMemoryUtilizationPercentage: 80
+
+  resources: {}
+  geoserver_env: GEOSERVER_LAYER
+
+
+ingress:
+  enabled: false
+  annotations: {}
+  # gcloud compute addresses create overstroomik-static-ip --global
+  # kubernetes.io/ingress.global-static-ip-name: "overstroomik-static-ip"
+  services:
+    - name: geoserver
+      path: /geoserver/*
+      port: 8080
+    - name: backend
+      path: /*
+      port: 80
