@@ -31,15 +31,19 @@ A helm chart is available to install Overstroomik in a Kubernetes cluster::
     helm install overstroomik helm/overstroomik
 
 By default ingress is disabled. port-forward can be used to access the pods in your local cluster. First get the name of the deployed pod::
+    
     kubectl get pods
 
 Create port-forward to access the pod from localhost. Geoserver is running on port 8080 and the backend on 80::
+    
     kubectl port-forward <podname> <local port>:<pod port>
 
 Ingress and autoscaling can be enabled in helm/values.yaml. Update the installation with changed configuration::
+    
     helm upgrade overstroomik helm/overstroomik
 
 Delete the instalation::
+    
     helm delete overstroomik
 
 
