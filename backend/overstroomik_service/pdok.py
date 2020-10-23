@@ -4,9 +4,7 @@ This class uses the pdok-api to find address information
 """
 
 import httpx
-from typing import Optional
-from pydantic import BaseModel
-from overstroomik_service.auto_models import Data, FloodInfo, Webservice, Location
+from overstroomik_service.auto_models import Location
 
 ERROR_GENERAL_NOER = "no-error"
 ERROR_PDOK_NO_RESP = "Geen response PDOK"
@@ -22,10 +20,10 @@ class PDOK():
     # fields we need
     fields = "centroide_rd,centroide_ll,straatnaam,woonplaatsnaam,postcode"
 
-    async def address_by_search_field(self,
-                                      search_field: str):
+    async def address_by_search_field(self, search_field: str):
         """
         Search address information with specified search string.
+        :param search_field: content of original search field
         """
 
         # build api_url
@@ -40,6 +38,8 @@ class PDOK():
     async def address_by_latlon(self, latitude: float, longitude: float):
         """
         Search address information with specified latitude and longitude.
+        :param latitude: coordinate in degrees in EPSG:4326
+        :param longitude: coordinate in degrees in EPSG:4326
         """
 
         # build api_url
@@ -47,10 +47,14 @@ class PDOK():
 
         # fetch date and return address
         status, address_item = await self.fetch_data(url)
-        
+
         return status, Location(**address_item)
 
     async def fetch_data(self, url: str):
+        """
+        Get the data from PDOK
+        :param url: api url to fetch
+        """
 
         # connect async to the pdok-api
         async with httpx.AsyncClient() as client:
@@ -66,8 +70,9 @@ class PDOK():
 
     def list_to_location(self, out: dict):
         """
-        Get the best result from de pdok list (now just 1 item). Later we can get more than 1 item and decide 
-        which we use as best result.              
+        Get the best result from de pdok list (now just 1 item).
+        Later we can get more than 1 item and decide which we use as best result.
+        :param out: array with multiple address-items from pdok
         """
         # initial no error
         status = ERROR_GENERAL_NOER
@@ -89,7 +94,8 @@ class PDOK():
 
     def to_location(self, doc_item: dict):
         """
-        Translate pdok-item to location
+        Translate pdok-item to location item
+        :param doc_item: single pdok address
         """
 
         rd = doc_item.get("centroide_rd", "0 0").replace("POINT(",

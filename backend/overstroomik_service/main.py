@@ -9,6 +9,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from overstroomik_service.geoserver import Geoserver
 from overstroomik_service.pdok import PDOK
 from overstroomik_service.config import settings
 from overstroomik_service.auto_models import Data, FloodInfo, Webservice, Location
@@ -34,12 +35,19 @@ async def read_root():
 @app.get('/by_rd', response_model=FloodInfo)
 async def by_rd(x: Optional[float] = None, y: Optional[float] = None) -> FloodInfo:
 
-    # Get location information from the geoserver
-    data = Data()
+    # determine which pdok function by input
+    if x and y:   
+        # Get location information from the geoserver
+        geoserver = Geoserver()
+        status, data = await geoserver.get_data(x, y)
+    else:
+        # No valid input for search_field or latitude and longitude
+        raise HTTPException(status_code=422, detail=ERROR_GENERAL_422)
 
+    # Return location details
     return FloodInfo(
-        webservice=Webservice(version=WS_VERSION, status=ERROR_GENERAL_NOER),
-        location=Location(),
+        webservice=Webservice(version=WS_VERSION, status=status),
+        location=Location(rd_x=x, rd_y=y),
         data=data
     )
 
@@ -51,10 +59,10 @@ async def by_location(
     longitude: Optional[float] = None,
 ) -> FloodInfo:
 
-    # Create pdok instance. 
+    # Create pdok instance.
     pdok = PDOK()
-
-    # determine which pdok function by input 
+    
+    # determine which pdok function by input
     if search_field is not None and len(search_field.strip()) > 0:
         # Get address information from the PDOK services by search field
         status, location = await pdok.address_by_search_field(search_field)
@@ -68,9 +76,10 @@ async def by_location(
     data = Data()
     if status == ERROR_GENERAL_NOER:
         # Get location information from the geoserver
-        data = Data()
+        geoserver = Geoserver()
+        status, data = await geoserver.get_data(location.rd_x, location.rd_y)
 
-    # Find location details in geoserver
+    # Return location details
     return FloodInfo(
         webservice=Webservice(version=WS_VERSION, status=status),
         location=location,
