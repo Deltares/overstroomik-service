@@ -5,7 +5,7 @@ location information by rd coordinates
 
 from typing import Optional
 import httpx
-
+import sys
 from overstroomik_service.auto_models import Data
 from overstroomik_service.config import settings
 
@@ -48,48 +48,52 @@ class Geoserver():
             # connect async to the geoserver
             async with httpx.AsyncClient() as client:
 
-                # fetch the feature info
-                result = await client.get(url, timeout=10.0)
+                # fetch the feature info                
+                try:
+                    result = await client.get(url, timeout=10.0)
+                                
+                    if result.status_code == httpx.codes.OK:
 
-                if result.status_code == httpx.codes.OK:
+                        out = result.json()
+                        features = out.get("features")
 
-                    out = result.json()
-                    features = out.get("features")
+                        if len(features) > 0:
 
-                    if len(features) > 0:
+                            for feature in features:
 
-                        for feature in features:
+                                # id or name of the sub layer
+                                f_id = feature.get("id")
+                                properties = feature.get("properties")
 
-                            # id or name of the sub layer
-                            f_id = feature.get("id")
-                            properties = feature.get("properties")
+                                if len(f_id) == 0 or f_id.startswith(
+                                        settings.LAYER_MAXIMUM_WATER_DEPTH):
+                                    data_item["maximum_water_depth"] = properties.get(
+                                        settings.FIELD_MAXIMUM_WATER_DEPTH, None)
 
-                            if len(f_id) == 0 or f_id.startswith(
-                                    settings.LAYER_MAXIMUM_WATER_DEPTH):
-                                data_item["maximum_water_depth"] = properties.get(
-                                    settings.FIELD_MAXIMUM_WATER_DEPTH, None)
+                                elif f_id.startswith(settings.LAYER_SAFETY_BOARD_ID):
+                                    data_item["safety_board_id"] = properties.get(
+                                        settings.FIELD_SAFETY_BOARD_ID, None)
 
-                            elif f_id.startswith(settings.LAYER_SAFETY_BOARD_ID):
-                                data_item["safety_board_id"] = properties.get(
-                                    settings.FIELD_SAFETY_BOARD_ID, None)
+                                elif f_id.startswith(
+                                        settings.LAYER_PROBABILITY_OF_FLOODING):
+                                    data_item["probability_of_flooding"] = properties.get(
+                                        settings.FIELD_PROBABILITY_OF_FLOODING, None)
 
-                            elif f_id.startswith(
-                                    settings.LAYER_PROBABILITY_OF_FLOODING):
-                                data_item["probability_of_flooding"] = properties.get(
-                                    settings.FIELD_PROBABILITY_OF_FLOODING, None)
+                                elif f_id.startswith(settings.LAYER_EVACUATION_PERCENTAGE):
+                                    data_item["evacuation_percentage"] = properties.get(
+                                        settings.FIELD_EVACUATION_PERCENTAGE, None)
 
-                            elif f_id.startswith(settings.LAYER_EVACUATION_PERCENTAGE):
-                                data_item["evacuation_percentage"] = properties.get(
-                                    settings.FIELD_EVACUATION_PERCENTAGE, None)
+                                elif f_id.startswith(settings.LAYER_FLOOD_TYPE):
+                                    data_item["flood_type"] = properties.get(
+                                        settings.FIELD_FLOOD_TYPE, None)
 
-                            elif f_id.startswith(settings.LAYER_FLOOD_TYPE):
-                                data_item["flood_type"] = properties.get(
-                                    settings.FIELD_FLOOD_TYPE, None)
-
-                        else:
-                            status: ERROR_GEOS_NO_SMAP
-                else:
-                    status = ERROR_GEOS_NO_RESP
+                            else:
+                                status: ERROR_GEOS_NO_SMAP
+                    else:
+                        status = ERROR_GEOS_NO_RESP
+                        
+                except :                    
+                    status = ERROR_GEOS_NO_RESP                                       
 
         return status, Data(**data_item)
 
