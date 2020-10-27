@@ -4,12 +4,9 @@ This class uses the pdok-api to find address information
 """
 
 import httpx
+from overstroomik_service.errors import Errors
 from overstroomik_service.auto_models import Location
-
-ERROR_GENERAL_NOER = "no-error"
-ERROR_PDOK_NO_RESP = "Geen response PDOK"
-ERROR_PDOK_NO_RESU = "Geen eenduidige resultaat PDOK"
-ERROR_GENERAL_ERRO = "Service niet bereikbaar"
+from overstroomik_service.config import settings
 
 
 class PDOK():
@@ -58,12 +55,12 @@ class PDOK():
 
         # connect async to the pdok-api
         async with httpx.AsyncClient() as client:
-            result = await client.get(url, timeout=10.0)
+            result = await client.get(url, timeout=settings.FETCH_TIMEOUT)
 
             if result.status_code == httpx.codes.OK:
                 status, address_item = self.list_to_location(result.json())
             else:
-                status = ERROR_PDOK_NO_RESP
+                status = Errors.ERROR_PDOK_NO_RESP
 
         # return status and address information
         return status, address_item
@@ -75,7 +72,7 @@ class PDOK():
         :param out: array with multiple address-items from pdok
         """
         # initial no error
-        status = ERROR_GENERAL_NOER
+        status = Errors.ERROR_GENERAL_NOER
 
         address_item = {}
         response = out.get("response")
@@ -86,9 +83,9 @@ class PDOK():
                 # Use the first result, this one has the highest score.
                 address_item = self.to_location(docs[0])
             else:
-                status = ERROR_PDOK_NO_RESU
+                status = Errors.ERROR_PDOK_NO_RESU
         else:
-            status = ERROR_PDOK_NO_RESU
+            status = Errors.ERROR_PDOK_NO_RESU
 
         return status, address_item
 

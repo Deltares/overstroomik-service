@@ -7,20 +7,17 @@ from typing import Optional
 import httpx
 import sys
 from overstroomik_service.auto_models import Data
+from overstroomik_service.errors import Errors
 from overstroomik_service.config import settings
-
-ERROR_GENERAL_NOER = "no-error"
-ERROR_GEOS_NO_RESP = "Geen response geoserver"
-ERROR_GEOS_NO_SMAP = "Geen response specifieke kaart"
 
 
 class Geoserver():
 
-    async def get_data(self,
-                       rd_x: float,
+    @staticmethod
+    async def get_data(rd_x: float,
                        rd_y: float,
-                       geoserver_url: Optional[str] = settings.GEOSERVER_URL,
-                       layers: [str] = settings.GEOSERVER_LAYER):
+                       geoserver_url: str = settings.GEOSERVER_URL,
+                       layers: str = settings.GEOSERVER_LAYER):
         """
         Find location information with specified rd coordinates.
         :param rd_x: x coordinate in meters, geocoded location longitude transformed into EPSG:28992
@@ -30,75 +27,87 @@ class Geoserver():
         """
 
         # initial no error
-        status = ERROR_GENERAL_NOER
+        status = Errors.ERROR_GENERAL_NOER
 
         # start with empty object
-        data_item = {}
+        data = Data()
 
         # create the getfeature info url
-        api_info = self.get_api_url_from_rd(
+        api_url, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
             rd_x=rd_x, rd_y=rd_y, geoserver_url=geoserver_url)
 
-        url = api_info.get("api_url")
-
         # Check input, is location between the layer exent
-        if api_info.get("valid", True) is False:
-            status = ERROR_GEOS_NO_SMAP
+        if not coordinate_is_valid:
+            status = Errors.ERROR_GEOS_NO_SMAP
         else:
             # connect async to the geoserver
             async with httpx.AsyncClient() as client:
 
-                # fetch the feature info                
+                # fetch the feature info
                 try:
-                    result = await client.get(url, timeout=10.0)
-                                
+                    result = await client.get(api_url, timeout=settings.FETCH_TIMEOUT)
                     if result.status_code == httpx.codes.OK:
-
                         out = result.json()
                         features = out.get("features")
-
-                        if len(features) > 0:
-
-                            for feature in features:
-
-                                # id or name of the sub layer
-                                f_id = feature.get("id")
-                                properties = feature.get("properties")
-
-                                if len(f_id) == 0 or f_id.startswith(
-                                        settings.LAYER_MAXIMUM_WATER_DEPTH):
-                                    data_item["maximum_water_depth"] = properties.get(
-                                        settings.FIELD_MAXIMUM_WATER_DEPTH, None)
-
-                                elif f_id.startswith(settings.LAYER_SAFETY_BOARD_ID):
-                                    data_item["safety_board_id"] = properties.get(
-                                        settings.FIELD_SAFETY_BOARD_ID, None)
-
-                                elif f_id.startswith(
-                                        settings.LAYER_PROBABILITY_OF_FLOODING):
-                                    data_item["probability_of_flooding"] = properties.get(
-                                        settings.FIELD_PROBABILITY_OF_FLOODING, None)
-
-                                elif f_id.startswith(settings.LAYER_EVACUATION_PERCENTAGE):
-                                    data_item["evacuation_percentage"] = properties.get(
-                                        settings.FIELD_EVACUATION_PERCENTAGE, None)
-
-                                elif f_id.startswith(settings.LAYER_FLOOD_TYPE):
-                                    data_item["flood_type"] = properties.get(
-                                        settings.FIELD_FLOOD_TYPE, None)
-
-                            else:
-                                status: ERROR_GEOS_NO_SMAP
+                        status, data = Geoserver.to_data(features)
                     else:
-                        status = ERROR_GEOS_NO_RESP
-                        
-                except :                    
-                    status = ERROR_GEOS_NO_RESP                                       
+                        status = Errors.ERROR_GEOS_NO_RESP
 
-        return status, Data(**data_item)
+                except:
+                    status = Errors.ERROR_GEOS_NO_RESP
 
-    def get_api_url_from_rd(self,
-                            rd_x: float,
+        return status, data
+
+    @staticmethod
+    def to_data(features: dict):
+
+        # start with empty object
+        data = Data()
+
+        # initial no error
+        status = Errors.ERROR_GENERAL_NOER
+
+        if len(features) > 0:
+
+            data_item = {}
+
+            for data_layer in settings.data_layers:
+                property = data_layer["property"]
+                layer = data_layer["layer"]
+                field = data_layer["field"]
+
+                data_item[property] = Geoserver.get_item(
+                    features=features, layer=layer, field=field)
+
+            data = Data(**data_item)
+        else:
+            status: Errors.ERROR_GEOS_NO_SMAP
+
+        return status, data
+
+    @staticmethod
+    def get_item(features: dict, layer: str, field: str):
+
+        value = None
+
+        for feature in features:
+            f_id = feature.get("id")
+            properties = feature.get("properties")
+
+            # the raster layer has no id in de json data (features),
+            # so we have one layer with an empty string. When we need
+            # more raster layers, the field (GRAY_INDEX) must
+            # used and must be unique
+            if layer == "" and f_id == "":
+                value = properties.get(field, None)
+
+            elif len(layer) > 0 and f_id.startswith(layer):
+                value = properties.get(field, None)
+
+        return value
+
+    @staticmethod
+    def get_api_url_from_rd(rd_x: float,
                             rd_y: float,
                             geoserver_url: Optional[str] = settings.GEOSERVER_URL,
                             layers: [str] = settings.GEOSERVER_LAYER):
@@ -107,7 +116,11 @@ class Geoserver():
         :param rd_x: x coordinate in meters, geocoded location longitude transformed into EPSG:28992
         :param rd_y: y coordinate in meters, geocoded location latitude transformed into EPSG:28992
         :param geoserver_url: link to the geoserver (example: http://geoserver:8080/geoserver)
-        :param layers: group layer with the expected data  (example: overstroomik:Overstroomik_data)
+        :param layers: group layer with the expected data  (example: overstroomik:Overstroomik_data)            
+
+        The 'getfeatureinfo' of the geoserver requires a bbox+width+height+x+y, 
+        so we have to calculate the correct indices by ourselves, which is why 
+        this can be hardcoded. The x and y are integer coordinates in pixels
         """
 
         # api url template
@@ -115,42 +128,33 @@ class Geoserver():
             f"&REQUEST=GetFeatureInfo&INFO_FORMAT=application/json&SRS=EPSG:28992&FEATURE_COUNT=50"\
             f"&LAYERS={layers}&QUERY_LAYERS={layers}"
 
-        # bounding box
-        bounding_box_rd = {
-            "min_x": float(634),
-            "min_y": float(306594),
-            "max_x": float(284300),
-            "max_y": float(636981)
-        }
+        # bounding box (extent of the group layer)
+        min_x = float(634)
+        min_y = float(306594)
+        max_x = float(284300)
+        max_y = float(636981)
 
         # test the input coordinate is in layer-extend
-        test_coordinate = rd_x >= bounding_box_rd.get(
-            "min_x") and rd_x <= bounding_box_rd.get(
-            "max_x") and rd_y >= bounding_box_rd.get(
-            "min_y") and rd_y <= bounding_box_rd.get("max_y")
+        coordinate_is_valid = rd_x >= min_x and rd_x <= max_x and rd_y >= min_y and rd_y <= max_y
 
         # calculate the height and width
-        height = bounding_box_rd.get("max_y") - bounding_box_rd.get("min_y")
-        width = bounding_box_rd.get("max_x") - bounding_box_rd.get("min_x")
+        height = max_y - min_y
+        width = max_x - min_x
 
         # calculate x/y relative to the extent
-        ddx = rd_x - bounding_box_rd.get("min_x")
-        ddy = rd_y - bounding_box_rd.get("min_y")
+        ddx = rd_x - min_x
+        ddy = rd_y - min_y
 
         # calculate then x/y in pixels
         x = width * ddx / width
         y = height - (height * ddy / height)
 
         # bounding box format
-        bounding_box = f"{bounding_box_rd['min_x']},{bounding_box_rd['min_y']}"\
-            f",{bounding_box_rd['max_x']},{bounding_box_rd['max_y']}"
+        bounding_box = f"{min_x},{min_y},{max_x},{max_y}"
 
-        return {
-            "valid": test_coordinate,
-            "height": height,
-            "width": width,
-            "x": x,
-            "y": y,
-            "api_url": f"{api_get_feature_info}&BBOX={bounding_box}&WIDTH={int(width)}"
+        indices = (width, height, x, y)
+
+        api_url = f"{api_get_feature_info}&BBOX={bounding_box}&WIDTH={int(width)}"\
             f"&HEIGHT={int(height)}&X={int(x)}&Y={int(y)}"
-        }
+        
+        return api_url, coordinate_is_valid, indices
