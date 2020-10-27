@@ -1,13 +1,15 @@
 import pytest
+import asyncio
+from overstroomik_service.errors import Errors
 from overstroomik_service.pdok import PDOK
+import warnings
 
 
-@pytest.mark.asyncio
 async def test_address_by_search_field() -> None:
     pdok = PDOK()
     status, location = await pdok.address_by_search_field(search_field="8232JN")
 
-    assert status == "no-error"
+    assert status == Errors.ERROR_GENERAL_NOER
     assert location.latitude == 52.50669969
     assert location.longitude == 5.46887432
     assert location.rd_x == 160544.902
@@ -18,14 +20,11 @@ async def test_address_by_search_field() -> None:
     assert location.zipcode == "8232JN"
 
 
-@pytest.mark.asyncio
 async def test_address_by_latlon() -> None:
     pdok = PDOK()
-    status, location = await pdok.address_by_latlon(
-        latitude=52.50669969, longitude=5.46887432
-    )
+    status, location = await pdok.address_by_latlon(latitude=52.50669969, longitude=5.46887432)
 
-    assert status == "no-error"
+    assert status == Errors.ERROR_GENERAL_NOER
     assert location.latitude == 52.50669597
     assert location.longitude == 5.46888296
     assert location.rd_x == 160545.489
@@ -36,7 +35,6 @@ async def test_address_by_latlon() -> None:
     assert location.zipcode == "8232JN"
 
 
-@pytest.mark.asyncio
 async def test_fetch_data() -> None:
     pdok = PDOK()
 
@@ -49,7 +47,7 @@ async def test_fetch_data() -> None:
     url = f"{api}?q=type:adres&lat={latitude}&lon={longitude}&rows=1&fl={fields}"
     status, adress_item = await pdok.fetch_data(url=url)
 
-    assert status == "no-error"
+    assert status == Errors.ERROR_GENERAL_NOER
     assert adress_item.get("latitude", 0) == 52.50669597
     assert adress_item.get("longitude", 0) == 5.46888296
     assert adress_item.get("address", "") == "Botter 11"
@@ -72,14 +70,14 @@ def test_list_to_location() -> None:
                     "centroide_rd": "POINT(160545.489 502115.081)",
                     "straatnaam": "Botter 11",
                 }
-            ],
+            ]
         }
     }
 
     pdok = PDOK()
     status, adress_item = pdok.list_to_location(out=pdok_result)
 
-    assert status == "no-error"
+    assert status == Errors.ERROR_GENERAL_NOER
     assert adress_item.get("latitude", 0) == 52.50669597
     assert adress_item.get("longitude", 0) == 5.46888296
     assert adress_item.get("rd_x", 0) == 160545.489
@@ -96,7 +94,7 @@ def test_to_location() -> None:
         "postcode": "8232JN",
         "centroide_ll": "POINT(5.46888296 52.50669597)",
         "centroide_rd": "POINT(160545.489 502115.081)",
-        "straatnaam": "Botter 11",
+        "straatnaam": "Botter 11"
     }
 
     pdok = PDOK()
