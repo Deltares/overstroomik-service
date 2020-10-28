@@ -3,20 +3,23 @@ import pytest
 import asyncio
 from overstroomik_service.errors import Errors
 from overstroomik_service.geoserver import Geoserver
+from overstroomik_service.config import settings
 import warnings
 
 
-@pytest.mark.skipif(bool(os.getenv("GEOSERVER_HOST")) == False, reason="requires environment variable GEOSERVER_HOST (localhost)")
+@pytest.mark.skipif(
+    (not settings.COMPOSE),
+    reason="requires geoserver with docker-compose (see COMPOSE env)",
+)
+@pytest.mark.asyncio
 async def test_get_data() -> None:
     """
     Test a valid situation with expected values
     """
-    geoserver_host = os.getenv("GEOSERVER_HOST")
 
     status, data = await Geoserver.get_data(
-        rd_x=158492.416,
-        rd_y=502424.151,
-        geoserver_url=f"http://{geoserver_host}:8080/geoserver")
+        rd_x=158492.416, rd_y=502424.151, geoserver_url=settings.GEOSERVER_URL,
+    )
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert data.flood_type == "binnen dijkring, mogelijk overstroombaar"
@@ -26,6 +29,7 @@ async def test_get_data() -> None:
     assert data.safety_board_id == 25
 
 
+@pytest.mark.asyncio
 async def test_no_service() -> None:
     """
     Test when the geoserver in unavailable
@@ -33,27 +37,29 @@ async def test_no_service() -> None:
     status, data = await Geoserver.get_data(
         rd_x=158492.416,
         rd_y=502424.151,
-        geoserver_url=f"http://unknown:8080/geoserver")
+        geoserver_url=f"http://non-existent:8080/geoserver",
+    )
 
     assert status == Errors.ERROR_GEOS_NO_RESP
 
 
-@pytest.mark.skipif(bool(os.getenv("GEOSERVER_HOST")) == False, reason="requires environment variable GEOSERVER_HOST")
+@pytest.mark.skipif(
+    (not settings.COMPOSE),
+    reason="requires geoserver with docker-compose (see COMPOSE env)",
+)
 def test_get_api_url_from_rd() -> None:
     """
-    Test the creation of the api url, it return also the width, height, x and x. 
+    Test the creation of the api url, it return also the width, height, x and x.
     Input rd_x and rd_y is different
     """
-    geoserver_host = os.getenv("GEOSERVER_HOST")
 
     # test 1
     # Given the x and y, this must result a valid coordinate with the specific values
     api_url, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
-        rd_x=158492.416,
-        rd_y=502424.151,
-        geoserver_url=f"http://{geoserver_host}:8080/geoserver")
+        rd_x=158492.416, rd_y=502424.151, geoserver_url=settings.GEOSERVER_URL,
+    )
 
-    assert f"http://{geoserver_host}:8080/geoserver" in api_url
+    assert settings.GEOSERVER_URL in api_url
     assert indices[2] == 157858.416
     assert indices[3] == 134556.849
     assert indices[0] == 283666.0
@@ -64,11 +70,10 @@ def test_get_api_url_from_rd() -> None:
     # Given the x and y, this must result a invalid coordinate with no values
     # The input is outside the grouplayers extend
     api_url, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
-        rd_x=633,
-        rd_y=636982,
-        geoserver_url=f"http://{geoserver_host}:8080/geoserver")
+        rd_x=633, rd_y=636982, geoserver_url=settings.GEOSERVER_URL
+    )
 
-    assert f"http://{geoserver_host}:8080/geoserver" in api_url
+    assert settings.GEOSERVER_URL in api_url
     assert indices[2] == -1
     assert indices[3] == -1
     assert coordinate_is_valid is False
@@ -77,11 +82,10 @@ def test_get_api_url_from_rd() -> None:
     # Given the x and y, this must result a invalid coordinate with no values
     # The input is outside the grouplayers extend
     api_url, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
-        rd_x=284301,
-        rd_y=306594,
-        geoserver_url=f"http://{geoserver_host}:8080/geoserver")
+        rd_x=284301, rd_y=306594, geoserver_url=settings.GEOSERVER_URL,
+    )
 
-    assert f"http://{geoserver_host}:8080/geoserver" in api_url
+    assert settings.GEOSERVER_URL in api_url
     assert indices[2] == 284301 - 634
     assert indices[3] == 636981 - 306594
     assert coordinate_is_valid is False

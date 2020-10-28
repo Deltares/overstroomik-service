@@ -5,6 +5,7 @@ from overstroomik_service.pdok import PDOK
 import warnings
 
 
+@pytest.mark.asyncio
 async def test_address_by_search_field() -> None:
     pdok = PDOK()
     status, location = await pdok.address_by_search_field(search_field="8232JN")
@@ -20,9 +21,12 @@ async def test_address_by_search_field() -> None:
     assert location.zipcode == "8232JN"
 
 
+@pytest.mark.asyncio
 async def test_address_by_latlon() -> None:
     pdok = PDOK()
-    status, location = await pdok.address_by_latlon(latitude=52.50669969, longitude=5.46887432)
+    status, location = await pdok.address_by_latlon(
+        latitude=52.50669969, longitude=5.46887432
+    )
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert location.latitude == 52.50669597
@@ -35,6 +39,7 @@ async def test_address_by_latlon() -> None:
     assert location.zipcode == "8232JN"
 
 
+@pytest.mark.asyncio
 async def test_fetch_data() -> None:
     pdok = PDOK()
 
@@ -70,7 +75,7 @@ def test_list_to_location() -> None:
                     "centroide_rd": "POINT(160545.489 502115.081)",
                     "straatnaam": "Botter 11",
                 }
-            ]
+            ],
         }
     }
 
@@ -94,7 +99,7 @@ def test_to_location() -> None:
         "postcode": "8232JN",
         "centroide_ll": "POINT(5.46888296 52.50669597)",
         "centroide_rd": "POINT(160545.489 502115.081)",
-        "straatnaam": "Botter 11"
+        "straatnaam": "Botter 11",
     }
 
     pdok = PDOK()
