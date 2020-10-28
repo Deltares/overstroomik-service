@@ -23,6 +23,12 @@ We make use of Docker and Docker-compose::
 
     docker-compose up -d
 
+To run integration tests
+
+    docker-compose exec backend bash scripts/test.sh
+
+No tests should fail, nor should there be any skipped tests.
+
 Running in a Kubernets cluster
 ==============================
 

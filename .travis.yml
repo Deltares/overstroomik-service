@@ -1,18 +1,14 @@
 # Config file for automatic testing at travis-ci.com
+sudo: required
 
-language: python
-python:
-  - 3.8
-
+services:
+  - docker
 
 before_install:
-  - cd backend
+  - docker-compose up -d --build
 
+script:
+  - docker-compose exec backend bash scripts/test.sh
 
-# Command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements_dev.txt tox-travis
-
-# Command to run tests, e.g. python setup.py test
-script: tox
-
-
+after_script:
+  - docker-compose down
