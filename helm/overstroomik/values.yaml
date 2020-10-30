@@ -5,7 +5,9 @@
 replicaCount: 1
 
 images:
-  geoserver: deltares/overstroomik-geoserver
+  geoserver:
+    repository: deltares/overtroomik-geoserver
+    tag: "fix-helm"
   backend: deltares/overstroomik-service
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.

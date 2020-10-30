@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: overstroomik-geoserver
-          image: "{{ .Values.images.geoserver }}:{{ .Values.images.tag | default .Chart.AppVersion }}"
+          image: "{{ .Values.images.geoserver.repository }}:{{ .Values.images.geoserver.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.images.pullPolicy }}
           ports:
             - containerPort: 8080
