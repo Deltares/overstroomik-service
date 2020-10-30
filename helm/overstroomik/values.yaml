@@ -45,8 +45,7 @@ backend:
     # targetMemoryUtilizationPercentage: 80
 
   resources: {}
-  geoserver_env: GEOSERVER_LAYER
-
+  geoserver_env: GEOSERVER_URL
 
 ingress:
   enabled: false
