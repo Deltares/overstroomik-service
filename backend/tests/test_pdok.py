@@ -6,7 +6,7 @@ import warnings
 
 
 @pytest.mark.asyncio
-async def test_address_by_search_field() -> None:
+async def test_address_by_search_field_zip_code() -> None:
     pdok = PDOK()
     status, location = await pdok.address_by_search_field(search_field="8232JN")
 
@@ -19,8 +19,7 @@ async def test_address_by_search_field() -> None:
     assert location.address == "Botter 11"
     assert location.municipality == "Lelystad"
     assert location.zipcode == "8232JN"
-
-
+    
 @pytest.mark.asyncio
 async def test_address_by_latlon() -> None:
     pdok = PDOK()
@@ -43,14 +42,21 @@ async def test_address_by_latlon() -> None:
 async def test_fetch_data() -> None:
     pdok = PDOK()
 
-    api = "https://geodata.nationaalgeoregister.nl/locatieserver/v3/free"
+    url = "https://geodata.nationaalgeoregister.nl/locatieserver/v3/free"
     fields = "centroide_rd,centroide_ll,straatnaam,woonplaatsnaam,postcode"
 
     latitude = 52.50669969
     longitude = 5.46887432
 
-    url = f"{api}?q=type:adres&lat={latitude}&lon={longitude}&rows=1&fl={fields}"
-    status, adress_item = await pdok.fetch_data(url=url)
+    params = {
+        "q": "type:adres",
+        "lat": latitude,
+        "lon": longitude,
+        "rows": 1,
+        "fl": fields
+    }
+        
+    status, adress_item = await pdok.fetch_data(url=url, params=params)
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert adress_item.get("latitude", 0) == 52.50669597

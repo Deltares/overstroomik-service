@@ -6,7 +6,7 @@ location information by rd coordinates
 from typing import Optional
 import httpx
 import sys
-from overstroomik_service.auto_models import Data
+from overstroomik_service.auto_models import Data, ProbabilityOfFlooding
 from overstroomik_service.errors import Errors
 from overstroomik_service.config import settings
 
@@ -33,7 +33,7 @@ class Geoserver():
         data = Data()
 
         # create the getfeature info url
-        api_url, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
+        url, params, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
             rd_x=rd_x, rd_y=rd_y, geoserver_url=geoserver_url)
 
         # Check input, is location between the layer exent
@@ -45,7 +45,7 @@ class Geoserver():
 
                 # fetch the feature info
                 try:
-                    result = await client.get(api_url, timeout=settings.FETCH_TIMEOUT)
+                    result = await client.get(url=url, params=params, timeout=settings.FETCH_TIMEOUT)
                     if result.status_code == httpx.codes.OK:
                         out = result.json()
                         features = out.get("features")
@@ -66,7 +66,7 @@ class Geoserver():
 
         # initial no error
         status = Errors.ERROR_GENERAL_NOER
-
+        
         if len(features) > 0:
 
             data_item = {}
@@ -93,16 +93,16 @@ class Geoserver():
         for feature in features:
             f_id = feature.get("id")
             properties = feature.get("properties")
-
+            
             # the raster layer has no id in de json data (features),
             # so we have one layer with an empty string. When we need
             # more raster layers, the field (GRAY_INDEX) must
             # used and must be unique
             if layer == "" and f_id == "":
                 value = properties.get(field, None)
-
-            elif len(layer) > 0 and f_id.startswith(layer):
-                value = properties.get(field, None)
+                            
+            elif len(layer) > 0 and f_id.startswith(layer):               
+                value = properties.get(field, None)                
 
         return value
 
@@ -116,23 +116,21 @@ class Geoserver():
         :param rd_x: x coordinate in meters, geocoded location longitude transformed into EPSG:28992
         :param rd_y: y coordinate in meters, geocoded location latitude transformed into EPSG:28992
         :param geoserver_url: link to the geoserver (example: http://geoserver:8080/geoserver)
-        :param layers: group layer with the expected data  (example: overstroomik:Overstroomik_data)            
+        :param layers: group layer with the expected data  (example: overstroomik:Overstroomik_data)
 
-        The 'getfeatureinfo' of the geoserver requires a bbox+width+height+x+y, 
-        so we have to calculate the correct indices by ourselves, which is why 
+        The 'getfeatureinfo' of the geoserver requires a bbox+width+height+x+y,
+        so we have to calculate the correct indices by ourselves, which is why
         this can be hardcoded. The x and y are integer coordinates in pixels
         """
 
         # api url template
-        api_get_feature_info = f"{geoserver_url}/overstroomik/wms?SERVICE=WMS&VERSION=1.1.1"\
-            f"&REQUEST=GetFeatureInfo&INFO_FORMAT=application/json&SRS=EPSG:28992&FEATURE_COUNT=50"\
-            f"&LAYERS={layers}&QUERY_LAYERS={layers}"
+        url = f"{geoserver_url}/overstroomik/wms"
 
         # bounding box (extent of the group layer)
-        min_x = float(634)
-        min_y = float(306594)
-        max_x = float(284300)
-        max_y = float(636981)
+        min_x = settings.grouplayer_extent_rd["min_x"]
+        min_y = settings.grouplayer_extent_rd["min_y"]
+        max_x = settings.grouplayer_extent_rd["max_x"]
+        max_y = settings.grouplayer_extent_rd["max_y"]
 
         # test the input coordinate is in layer-extend
         coordinate_is_valid = rd_x >= min_x and rd_x <= max_x and rd_y >= min_y and rd_y <= max_y
@@ -154,7 +152,20 @@ class Geoserver():
 
         indices = (width, height, x, y)
 
-        api_url = f"{api_get_feature_info}&BBOX={bounding_box}&WIDTH={int(width)}"\
-            f"&HEIGHT={int(height)}&X={int(x)}&Y={int(y)}"
-        
-        return api_url, coordinate_is_valid, indices
+        params = {
+            "SERVICE": "WMS",
+            "VERSION": "1.1.1",
+            "REQUEST": "GetFeatureInfo",
+            "INFO_FORMAT": "application/json",
+            "SRS": "EPSG:28992",
+            "FEATURE_COUNT": "50",
+            "LAYERS": layers,
+            "QUERY_LAYERS": layers,
+            "BBOX": bounding_box,
+            "WIDTH": int(width),
+            "HEIGHT": int(height),
+            "X": int(x),
+            "Y": int(y)
+        }
+
+        return url, params, coordinate_is_valid, indices

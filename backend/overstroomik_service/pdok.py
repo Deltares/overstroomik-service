@@ -22,12 +22,16 @@ class PDOK():
         Search address information with specified search string.
         :param search_field: content of original search field
         """
-
-        # build api_url
-        url = f"{self.api}?q={search_field}&rows=1&fl={self.fields}"
+        # input parameters for pdok-api
+        params = {
+            "q": search_field,
+            "rows": 1,
+            "fl": self.fields
+        }
 
         # fetch date and return address
-        status, address_item = await self.fetch_data(url)
+        status, address_item = await self.fetch_data(url=self.api, params=params)
+
         address_item["search_field"] = search_field
 
         return status, Location(**address_item)
@@ -39,15 +43,21 @@ class PDOK():
         :param longitude: coordinate in degrees in EPSG:4326
         """
 
-        # build api_url
-        url = f"{self.api}?q=type:adres&lat={latitude}&lon={longitude}&rows=1&fl={self.fields}"
+        # input parameters for pdok-api
+        params = {
+            "q": "type:adres",
+            "lat": latitude,
+            "lon": longitude,
+            "rows": 1,
+            "fl": self.fields
+        }
 
         # fetch date and return address
-        status, address_item = await self.fetch_data(url)
+        status, address_item = await self.fetch_data(url=self.api, params=params)
 
         return status, Location(**address_item)
 
-    async def fetch_data(self, url: str):
+    async def fetch_data(self, url: str, params: dict):
         """
         Get the data from PDOK
         :param url: api url to fetch
@@ -55,7 +65,7 @@ class PDOK():
 
         # connect async to the pdok-api
         async with httpx.AsyncClient() as client:
-            result = await client.get(url, timeout=settings.FETCH_TIMEOUT)
+            result = await client.get(url=url, params=params, timeout=settings.FETCH_TIMEOUT)
 
             if result.status_code == httpx.codes.OK:
                 status, address_item = self.list_to_location(result.json())

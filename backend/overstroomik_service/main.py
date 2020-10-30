@@ -15,8 +15,6 @@ from overstroomik_service.pdok import PDOK
 from overstroomik_service.config import settings
 from overstroomik_service.auto_models import Data, FloodInfo, Webservice, Location
 
-WS_VERSION = 0.1
-
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +26,7 @@ app.add_middleware(
 
 @app.get("/")
 async def read_root():
-    return Webservice(version=WS_VERSION, status=str(Errors.ERROR_GENERAL_NOER))
+    return Webservice(version=settings.WS_VERSION, status=str(Errors.ERROR_GENERAL_NOER))
 
 
 @app.get('/by_rd', response_model=FloodInfo)
@@ -40,11 +38,11 @@ async def by_rd(x: float = None, y: float = None) -> FloodInfo:
         status, data = await Geoserver.get_data(x, y)
     else:
         # No valid input for search_field or latitude and longitude
-        raise HTTPException(status_code=422, detail=str(Errors.ERROR_GENERAL_0422))
+        raise HTTPException(status_code=422, detail=str(Errors.ERROR_BY_RD_422))
 
     # Return location details
     return FloodInfo(
-        webservice=Webservice(version=WS_VERSION, status=str(status)),
+        webservice=Webservice(version=settings.WS_VERSION, status=str(status)),
         location=Location(rd_x=x, rd_y=y),
         data=data
     )
@@ -69,17 +67,17 @@ async def by_location(
         status, location = await pdok.address_by_latlon(latitude, longitude)
     else:
         # No valid input for search_field or latitude and longitude
-        raise HTTPException(status_code=422, detail=str(Errors.ERROR_GENERAL_0422))
-    
+        raise HTTPException(status_code=422, detail=str(Errors.ERROR_BY_LOCATION_422))
+
     data = Data()
 
     if status == Errors.ERROR_GENERAL_NOER:
-        # Get location information from the geoserver
+        # Get location information from the geoserver        
         status, data = await Geoserver.get_data(location.rd_x, location.rd_y)
 
     # Return location details
     return FloodInfo(
-        webservice=Webservice(version=WS_VERSION, status=str(status)),
+        webservice=Webservice(version=settings.WS_VERSION, status=str(status)),
         location=location,
         data=data
     )
