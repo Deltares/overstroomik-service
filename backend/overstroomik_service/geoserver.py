@@ -5,19 +5,20 @@ location information by rd coordinates
 
 from typing import Optional
 import httpx
-import sys
+import logging
 from overstroomik_service.auto_models import Data
 from overstroomik_service.errors import Errors
 from overstroomik_service.config import settings
 
 
-class Geoserver():
-
+class Geoserver:
     @staticmethod
-    async def get_data(rd_x: float,
-                       rd_y: float,
-                       geoserver_url: str = settings.GEOSERVER_URL,
-                       layers: str = settings.GEOSERVER_LAYER):
+    async def get_data(
+        rd_x: float,
+        rd_y: float,
+        geoserver_url: str = settings.GEOSERVER_URL,
+        layers: str = settings.GEOSERVER_LAYER,
+    ):
         """
         Find location information with specified rd coordinates.
         :param rd_x: x coordinate in meters, geocoded location longitude transformed into EPSG:28992
@@ -34,7 +35,8 @@ class Geoserver():
 
         # create the getfeature info url
         api_url, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
-            rd_x=rd_x, rd_y=rd_y, geoserver_url=geoserver_url)
+            rd_x=rd_x, rd_y=rd_y, geoserver_url=geoserver_url
+        )
 
         # Check input, is location between the layer exent
         if not coordinate_is_valid:
@@ -54,6 +56,7 @@ class Geoserver():
                         status = Errors.ERROR_GEOS_NO_RESP
 
                 except:
+                    logging.exception(f"Failed to connect to geoserver using {url}")
                     status = Errors.ERROR_GEOS_NO_RESP
 
         return status, data
@@ -77,7 +80,8 @@ class Geoserver():
                 field = data_layer["field"]
 
                 data_item[property] = Geoserver.get_item(
-                    features=features, layer=layer, field=field)
+                    features=features, layer=layer, field=field
+                )
 
             data = Data(**data_item)
         else:
@@ -107,26 +111,30 @@ class Geoserver():
         return value
 
     @staticmethod
-    def get_api_url_from_rd(rd_x: float,
-                            rd_y: float,
-                            geoserver_url: Optional[str] = settings.GEOSERVER_URL,
-                            layers: [str] = settings.GEOSERVER_LAYER):
+    def get_api_url_from_rd(
+        rd_x: float,
+        rd_y: float,
+        geoserver_url: Optional[str] = settings.GEOSERVER_URL,
+        layers: [str] = settings.GEOSERVER_LAYER,
+    ):
         """
         Create the get-feature-info link.
         :param rd_x: x coordinate in meters, geocoded location longitude transformed into EPSG:28992
         :param rd_y: y coordinate in meters, geocoded location latitude transformed into EPSG:28992
         :param geoserver_url: link to the geoserver (example: http://geoserver:8080/geoserver)
-        :param layers: group layer with the expected data  (example: overstroomik:Overstroomik_data)            
+        :param layers: group layer with the expected data  (example: overstroomik:Overstroomik_data)
 
-        The 'getfeatureinfo' of the geoserver requires a bbox+width+height+x+y, 
-        so we have to calculate the correct indices by ourselves, which is why 
+        The 'getfeatureinfo' of the geoserver requires a bbox+width+height+x+y,
+        so we have to calculate the correct indices by ourselves, which is why
         this can be hardcoded. The x and y are integer coordinates in pixels
         """
 
         # api url template
-        api_get_feature_info = f"{geoserver_url}/overstroomik/wms?SERVICE=WMS&VERSION=1.1.1"\
-            f"&REQUEST=GetFeatureInfo&INFO_FORMAT=application/json&SRS=EPSG:28992&FEATURE_COUNT=50"\
+        api_get_feature_info = (
+            f"{geoserver_url}/overstroomik/wms?SERVICE=WMS&VERSION=1.1.1"
+            f"&REQUEST=GetFeatureInfo&INFO_FORMAT=application/json&SRS=EPSG:28992&FEATURE_COUNT=50"
             f"&LAYERS={layers}&QUERY_LAYERS={layers}"
+        )
 
         # bounding box (extent of the group layer)
         min_x = float(634)
@@ -135,7 +143,9 @@ class Geoserver():
         max_y = float(636981)
 
         # test the input coordinate is in layer-extend
-        coordinate_is_valid = rd_x >= min_x and rd_x <= max_x and rd_y >= min_y and rd_y <= max_y
+        coordinate_is_valid = (
+            rd_x >= min_x and rd_x <= max_x and rd_y >= min_y and rd_y <= max_y
+        )
 
         # calculate the height and width
         height = max_y - min_y
@@ -154,7 +164,9 @@ class Geoserver():
 
         indices = (width, height, x, y)
 
-        api_url = f"{api_get_feature_info}&BBOX={bounding_box}&WIDTH={int(width)}"\
+        api_url = (
+            f"{api_get_feature_info}&BBOX={bounding_box}&WIDTH={int(width)}"
             f"&HEIGHT={int(height)}&X={int(x)}&Y={int(y)}"
-        
+        )
+
         return api_url, coordinate_is_valid, indices
