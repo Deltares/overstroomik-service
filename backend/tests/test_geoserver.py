@@ -2,11 +2,19 @@ import os
 import pytest
 import asyncio
 
-from overstroomik_service.auto_models import FloodType, ProbabilityOfFlooding
+from overstroomik_service.auto_models import FloodType, ProbabilityOfFlooding, Data
 from overstroomik_service.errors import Errors
 from overstroomik_service.geoserver import Geoserver
 from overstroomik_service.config import settings
 import warnings
+
+
+def test_data():
+    """Test monkey patched validators."""
+    assert len(Data.__validators__) > 0
+    d = Data(maximum_water_depth=100, probability_of_flooding="test")
+    assert d.maximum_water_depth == 0.0
+    assert d.probability_of_flooding is None
 
 
 @pytest.mark.skipif(
@@ -25,12 +33,19 @@ async def test_get_data() -> None:
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert data.flood_type == FloodType.binnen_dijkring__mogelijk_overstroombaar
-    assert data.probability_of_flooding == ProbabilityOfFlooding.kleine_kans__1_300_tot_1_3_000_per_jaar
-    assert data.maximum_water_depth == 2.0899999141693115    
+    assert (
+        data.probability_of_flooding
+        == ProbabilityOfFlooding.kleine_kans__1_300_tot_1_3_000_per_jaar
+    )
+    assert data.maximum_water_depth == 2.0899999141693115
     assert data.evacuation_percentage == 55
     assert data.safety_board_id == 25
 
 
+@pytest.mark.skipif(
+    (not settings.COMPOSE),
+    reason="requires geoserver with docker-compose (see COMPOSE env)",
+)
 @pytest.mark.asyncio
 async def test_get_data_validator_waterdepth() -> None:
     """
@@ -40,15 +55,19 @@ async def test_get_data_validator_waterdepth() -> None:
     """
 
     status, data = await Geoserver.get_data(
-        rd_x=172510,
-        rd_y=483742,
-        geoserver_url=settings.GEOSERVER_URL,
+        rd_x=172510, rd_y=483742, geoserver_url=settings.GEOSERVER_URL,
     )
+    print(data)
+    print(data.__validators__)
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert data.maximum_water_depth == 0.0
 
 
+@pytest.mark.skipif(
+    (not settings.COMPOSE),
+    reason="requires geoserver with docker-compose (see COMPOSE env)",
+)
 @pytest.mark.asyncio
 async def test_get_data_validator_enum() -> None:
     """
@@ -56,17 +75,18 @@ async def test_get_data_validator_enum() -> None:
     """
 
     status, data = await Geoserver.get_data(
-        rd_x=158492.416,
-        rd_y=502424.151,
-        geoserver_url=settings.GEOSERVER_URL,
+        rd_x=158492.416, rd_y=502424.151, geoserver_url=settings.GEOSERVER_URL,
     )
 
     assert status == Errors.ERROR_GENERAL_NOER
-    assert data.probability_of_flooding == ProbabilityOfFlooding.kleine_kans__1_300_tot_1_3_000_per_jaar
+    assert (
+        data.probability_of_flooding
+        == ProbabilityOfFlooding.kleine_kans__1_300_tot_1_3_000_per_jaar
+    )
     assert data.flood_type == FloodType.binnen_dijkring__mogelijk_overstroombaar
 
 
-@ pytest.mark.asyncio
+@pytest.mark.asyncio
 async def test_no_service() -> None:
     """
     Test when the geoserver in unavailable
@@ -80,7 +100,7 @@ async def test_no_service() -> None:
     assert status == Errors.ERROR_GEOS_NO_RESP
 
 
-@ pytest.mark.skipif(
+@pytest.mark.skipif(
     (not settings.COMPOSE),
     reason="requires geoserver with docker-compose (see COMPOSE env)",
 )
