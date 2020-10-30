@@ -97,13 +97,14 @@ class Data(BaseModel):
     @validator('maximum_water_depth', pre=True)
     def validator_maximum_water_depth(cls, value):
 
-        # water depth lower then one cm is to low or no valid data from the layer
-        if value < 0.01:
-            value = 0.0
+        if value != None:
+            # water depth lower then one cm is to low or no valid data from the layer
+            if value < 0.01:
+                value = 0.0
 
-        # water depth more then 50 m is no water is to high or no valid data from the layer
-        elif value > 50.0:
-            value = 0.0
+            # water depth more then 50 m is no water is to high or no valid data from the layer
+            elif value > 50.0:
+                value = 0.0        
 
         return value
 
@@ -133,10 +134,10 @@ class Data(BaseModel):
 
     @validator('flood_type', pre=True)
     def validator_flood_type(cls, value):
-
+        
         # No action as the enum parse is passed
         if isinstance(value, FloodType):
-            return value
+            return FloodType.binnen_dijkring__mogelijk_overstroombaar
         else:
             if value == None:
                 return None

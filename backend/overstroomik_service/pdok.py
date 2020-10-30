@@ -12,7 +12,7 @@ from overstroomik_service.config import settings
 class PDOK():
 
     # pdok api url
-    api = "https://geodata.nationaalgeoregister.nl/locatieserver/v3/free"
+    api = "https://geodata.nationaalgeoregister.nl:81/locatieserver/v3/free"
 
     # fields we need
     fields = "centroide_rd,centroide_ll,straatnaam,woonplaatsnaam,postcode"
@@ -62,15 +62,21 @@ class PDOK():
         Get the data from PDOK
         :param url: api url to fetch
         """
-
+        address_item = {}
+        
         # connect async to the pdok-api
         async with httpx.AsyncClient() as client:
-            result = await client.get(url=url, params=params, timeout=settings.FETCH_TIMEOUT)
 
-            if result.status_code == httpx.codes.OK:
-                status, address_item = self.list_to_location(result.json())
-            else:
-                status = Errors.ERROR_PDOK_NO_RESP
+            # fetch the feature info
+            try:
+                result = await client.get(url=url, params=params, timeout=settings.FETCH_TIMEOUT)
+                if result.status_code == httpx.codes.OK:                    
+                    status, address_item = self.list_to_location(result.json())
+                else:                    
+                    status = Errors.ERROR_PDOK_NO_RESP
+
+            except:                
+                status = Errors.ERROR_PDOK_NO_RESP                
 
         # return status and address information
         return status, address_item

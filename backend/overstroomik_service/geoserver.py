@@ -66,7 +66,7 @@ class Geoserver():
 
         # initial no error
         status = Errors.ERROR_GENERAL_NOER
-        
+
         if len(features) > 0:
 
             data_item = {}
@@ -93,16 +93,16 @@ class Geoserver():
         for feature in features:
             f_id = feature.get("id")
             properties = feature.get("properties")
-            
+
             # the raster layer has no id in de json data (features),
             # so we have one layer with an empty string. When we need
             # more raster layers, the field (GRAY_INDEX) must
             # used and must be unique
             if layer == "" and f_id == "":
                 value = properties.get(field, None)
-                            
-            elif len(layer) > 0 and f_id.startswith(layer):               
-                value = properties.get(field, None)                
+
+            elif len(layer) > 0 and f_id.startswith(layer):
+                value = properties.get(field, None)
 
         return value
 
