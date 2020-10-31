@@ -1,3 +1,4 @@
+import logging
 from typing import List, Union
 
 from pydantic import AnyHttpUrl, BaseSettings, validator
@@ -32,7 +33,7 @@ class Settings(BaseSettings):
         {
             "property": "safety_board_id",
             "layer": "administratieve_grenzen_veiligheidsregios",
-            "field": "id",            
+            "field": "id",
         },
         {
             "property": "probability_of_flooding",
@@ -64,3 +65,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+logging.warning(settings)

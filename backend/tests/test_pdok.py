@@ -19,7 +19,8 @@ async def test_address_by_search_field_zip_code() -> None:
     assert location.address == "Botter 11"
     assert location.municipality == "Lelystad"
     assert location.zipcode == "8232JN"
-    
+
+
 @pytest.mark.asyncio
 async def test_address_by_latlon() -> None:
     pdok = PDOK()
@@ -53,9 +54,9 @@ async def test_fetch_data() -> None:
         "lat": latitude,
         "lon": longitude,
         "rows": 1,
-        "fl": fields
+        "fl": fields,
     }
-        
+
     status, adress_item = await pdok.fetch_data(url=url, params=params)
 
     assert status == Errors.ERROR_GENERAL_NOER

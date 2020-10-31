@@ -1,19 +1,15 @@
-"""
-This class uses the pdok-api to find address information
-
-"""
-
+import logging
 from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from overstroomik_service.auto_models import Data, FloodInfo, Location, Webservice
+from overstroomik_service.config import settings
 from overstroomik_service.errors import Errors
 from overstroomik_service.geoserver import Geoserver
 from overstroomik_service.pdok import PDOK
-from overstroomik_service.config import settings
-from overstroomik_service.auto_models import Data, FloodInfo, Webservice, Location
 
 app = FastAPI()
 app.add_middleware(
@@ -26,25 +22,22 @@ app.add_middleware(
 
 @app.get("/")
 async def read_root():
-    return Webservice(version=settings.WS_VERSION, status=str(Errors.ERROR_GENERAL_NOER))
+    return Webservice(
+        version=settings.WS_VERSION, status=str(Errors.ERROR_GENERAL_NOER)
+    )
 
 
-@app.get('/by_rd', response_model=FloodInfo)
-async def by_rd(x: float = None, y: float = None) -> FloodInfo:
+@app.get("/by_rd", response_model=FloodInfo)
+async def by_rd(x: float, y: float) -> FloodInfo:
 
-    # determine which pdok function by input
-    if x and y:
-        # Get location information from the geoserver
-        status, data = await Geoserver.get_data(x, y)
-    else:
-        # No valid input for search_field or latitude and longitude
-        raise HTTPException(status_code=422, detail=str(Errors.ERROR_BY_RD_422))
+    # Get location information from the geoserver
+    status, data = await Geoserver.get_data(x, y)
 
     # Return location details
     return FloodInfo(
         webservice=Webservice(version=settings.WS_VERSION, status=str(status)),
         location=Location(rd_x=x, rd_y=y),
-        data=data
+        data=data,
     )
 
 
@@ -72,14 +65,14 @@ async def by_location(
     data = Data()
 
     if status == Errors.ERROR_GENERAL_NOER:
-        # Get location information from the geoserver        
+        # Get location information from the geoserver
         status, data = await Geoserver.get_data(location.rd_x, location.rd_y)
 
     # Return location details
     return FloodInfo(
         webservice=Webservice(version=settings.WS_VERSION, status=str(status)),
         location=location,
-        data=data
+        data=data,
     )
 
 

@@ -7,7 +7,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, confloat, constr, validator
+from pydantic import BaseModel, Field, confloat, constr
 
 
 class Webservice(BaseModel):

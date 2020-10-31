@@ -2,17 +2,19 @@
 This class uses the pdok-api to find address information
 
 """
+import logging
 
 import httpx
-from overstroomik_service.errors import Errors
+
 from overstroomik_service.auto_models import Location
 from overstroomik_service.config import settings
+from overstroomik_service.errors import Errors
 
 
-class PDOK():
+class PDOK:
 
     # pdok api url
-    api = "https://geodata.nationaalgeoregister.nl:81/locatieserver/v3/free"
+    api = "https://geodata.nationaalgeoregister.nl/locatieserver/v3/free"
 
     # fields we need
     fields = "centroide_rd,centroide_ll,straatnaam,woonplaatsnaam,postcode"
@@ -23,11 +25,7 @@ class PDOK():
         :param search_field: content of original search field
         """
         # input parameters for pdok-api
-        params = {
-            "q": search_field,
-            "rows": 1,
-            "fl": self.fields
-        }
+        params = {"q": search_field, "rows": 1, "fl": self.fields}
 
         # fetch date and return address
         status, address_item = await self.fetch_data(url=self.api, params=params)
@@ -49,7 +47,7 @@ class PDOK():
             "lat": latitude,
             "lon": longitude,
             "rows": 1,
-            "fl": self.fields
+            "fl": self.fields,
         }
 
         # fetch date and return address
@@ -63,20 +61,25 @@ class PDOK():
         :param url: api url to fetch
         """
         address_item = {}
-        
+
         # connect async to the pdok-api
         async with httpx.AsyncClient() as client:
 
             # fetch the feature info
             try:
-                result = await client.get(url=url, params=params, timeout=settings.FETCH_TIMEOUT)
-                if result.status_code == httpx.codes.OK:                    
+                result = await client.get(
+                    url=url, params=params, timeout=settings.FETCH_TIMEOUT
+                )
+                if result.status_code == httpx.codes.OK:
                     status, address_item = self.list_to_location(result.json())
-                else:                    
+                else:
                     status = Errors.ERROR_PDOK_NO_RESP
 
-            except:                
-                status = Errors.ERROR_PDOK_NO_RESP                
+            except httpx.RequestError as exc:
+                logging.exception(
+                    f"Failed to connect to PDOK using {exc.request.url!r}"
+                )
+                status = Errors.ERROR_PDOK_NO_RESP
 
         # return status and address information
         return status, address_item
@@ -91,7 +94,7 @@ class PDOK():
         status = Errors.ERROR_GENERAL_NOER
 
         address_item = {}
-        response = out.get("response")
+        response = out.get("response", {})
 
         if response.get("numFound", 0) > 0:
             docs = response.get("docs")
@@ -111,10 +114,18 @@ class PDOK():
         :param doc_item: single pdok address
         """
 
-        rd = doc_item.get("centroide_rd", "0 0").replace("POINT(",
-                                                         "").replace(")", "").split(" ")
-        ll = doc_item.get("centroide_ll", "0 0").replace("POINT(",
-                                                         "").replace(")", "").split(" ")
+        rd = (
+            doc_item.get("centroide_rd", "0 0")
+            .replace("POINT(", "")
+            .replace(")", "")
+            .split(" ")
+        )
+        ll = (
+            doc_item.get("centroide_ll", "0 0")
+            .replace("POINT(", "")
+            .replace(")", "")
+            .split(" ")
+        )
 
         return {
             "latitude": float(ll[1]),

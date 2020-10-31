@@ -1,20 +1,17 @@
-import os
 import pytest
-import asyncio
 
 from overstroomik_service.auto_models import FloodType, ProbabilityOfFlooding, Data
 from overstroomik_service.errors import Errors
 from overstroomik_service.geoserver import Geoserver
 from overstroomik_service.config import settings
-import warnings
 
 
 def test_data():
     """Test monkey patched validators."""
-    assert len(Data.__validators__) > 0
-    d = Data(maximum_water_depth=100, probability_of_flooding="test")
+    d = Data(maximum_water_depth=100, probability_of_flooding="test", flood_type="test")
     assert d.maximum_water_depth == 0.0
     assert d.probability_of_flooding is None
+    assert d.flood_type is None
 
 
 @pytest.mark.skipif(
@@ -57,8 +54,6 @@ async def test_get_data_validator_waterdepth() -> None:
     status, data = await Geoserver.get_data(
         rd_x=172510, rd_y=483742, geoserver_url=settings.GEOSERVER_URL,
     )
-    print(data)
-    print(data.__validators__)
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert data.maximum_water_depth == 0.0

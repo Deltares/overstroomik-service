@@ -3,21 +3,24 @@ This class uses the geoserver-api and geoserver layers to find
 location information by rd coordinates
 """
 
+import logging
 from typing import Optional
+
 import httpx
-import sys
-from overstroomik_service.auto_models import Data, ProbabilityOfFlooding
-from overstroomik_service.errors import Errors
+
+from overstroomik_service.auto_models import Data
 from overstroomik_service.config import settings
+from overstroomik_service.errors import Errors
 
 
-class Geoserver():
-
+class Geoserver:
     @staticmethod
-    async def get_data(rd_x: float,
-                       rd_y: float,
-                       geoserver_url: str = settings.GEOSERVER_URL,
-                       layers: str = settings.GEOSERVER_LAYER):
+    async def get_data(
+        rd_x: float,
+        rd_y: float,
+        geoserver_url: str = settings.GEOSERVER_URL,
+        layers: str = settings.GEOSERVER_LAYER,
+    ):
         """
         Find location information with specified rd coordinates.
         :param rd_x: x coordinate in meters, geocoded location longitude transformed into EPSG:28992
@@ -34,7 +37,8 @@ class Geoserver():
 
         # create the getfeature info url
         url, params, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
-            rd_x=rd_x, rd_y=rd_y, geoserver_url=geoserver_url)
+            rd_x=rd_x, rd_y=rd_y, geoserver_url=geoserver_url
+        )
 
         # Check input, is location between the layer exent
         if not coordinate_is_valid:
@@ -45,7 +49,9 @@ class Geoserver():
 
                 # fetch the feature info
                 try:
-                    result = await client.get(url=url, params=params, timeout=settings.FETCH_TIMEOUT)
+                    result = await client.get(
+                        url=url, params=params, timeout=settings.FETCH_TIMEOUT
+                    )
                     if result.status_code == httpx.codes.OK:
                         out = result.json()
                         features = out.get("features")
@@ -53,7 +59,10 @@ class Geoserver():
                     else:
                         status = Errors.ERROR_GEOS_NO_RESP
 
-                except:
+                except httpx.RequestError as exc:
+                    logging.exception(
+                        f"Failed to connect to geoserver using {exc.request.url!r}"
+                    )
                     status = Errors.ERROR_GEOS_NO_RESP
 
         return status, data
@@ -77,7 +86,8 @@ class Geoserver():
                 field = data_layer["field"]
 
                 data_item[property] = Geoserver.get_item(
-                    features=features, layer=layer, field=field)
+                    features=features, layer=layer, field=field
+                )
 
             data = Data(**data_item)
         else:
@@ -107,10 +117,12 @@ class Geoserver():
         return value
 
     @staticmethod
-    def get_api_url_from_rd(rd_x: float,
-                            rd_y: float,
-                            geoserver_url: Optional[str] = settings.GEOSERVER_URL,
-                            layers: [str] = settings.GEOSERVER_LAYER):
+    def get_api_url_from_rd(
+        rd_x: float,
+        rd_y: float,
+        geoserver_url: Optional[str] = settings.GEOSERVER_URL,
+        layers: [str] = settings.GEOSERVER_LAYER,
+    ):
         """
         Create the get-feature-info link.
         :param rd_x: x coordinate in meters, geocoded location longitude transformed into EPSG:28992
@@ -133,7 +145,9 @@ class Geoserver():
         max_y = settings.grouplayer_extent_rd["max_y"]
 
         # test the input coordinate is in layer-extend
-        coordinate_is_valid = rd_x >= min_x and rd_x <= max_x and rd_y >= min_y and rd_y <= max_y
+        coordinate_is_valid = (
+            rd_x >= min_x and rd_x <= max_x and rd_y >= min_y and rd_y <= max_y
+        )
 
         # calculate the height and width
         height = max_y - min_y
@@ -165,7 +179,7 @@ class Geoserver():
             "WIDTH": int(width),
             "HEIGHT": int(height),
             "X": int(x),
-            "Y": int(y)
+            "Y": int(y),
         }
 
         return url, params, coordinate_is_valid, indices
