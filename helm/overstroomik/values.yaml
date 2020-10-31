@@ -6,7 +6,7 @@ replicaCount: 1
 
 images:
   geoserver:
-    repository: deltares/overtroomik-geoserver
+    repository: deltares/overstroomik-geoserver
     tag: "fix-helm"
   backend: deltares/overstroomik-service
   pullPolicy: IfNotPresent

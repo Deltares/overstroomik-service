@@ -2,14 +2,16 @@
 This class uses the pdok-api to find address information
 
 """
+import logging
 
 import httpx
-from overstroomik_service.errors import Errors
+
 from overstroomik_service.auto_models import Location
 from overstroomik_service.config import settings
+from overstroomik_service.errors import Errors
 
 
-class PDOK():
+class PDOK:
 
     # pdok api url
     api = "https://geodata.nationaalgeoregister.nl/locatieserver/v3/free"
@@ -22,12 +24,12 @@ class PDOK():
         Search address information with specified search string.
         :param search_field: content of original search field
         """
-
-        # build api_url
-        url = f"{self.api}?q={search_field}&rows=1&fl={self.fields}"
+        # input parameters for pdok-api
+        params = {"q": search_field, "rows": 1, "fl": self.fields}
 
         # fetch date and return address
-        status, address_item = await self.fetch_data(url)
+        status, address_item = await self.fetch_data(url=self.api, params=params)
+
         address_item["search_field"] = search_field
 
         return status, Location(**address_item)
@@ -39,27 +41,44 @@ class PDOK():
         :param longitude: coordinate in degrees in EPSG:4326
         """
 
-        # build api_url
-        url = f"{self.api}?q=type:adres&lat={latitude}&lon={longitude}&rows=1&fl={self.fields}"
+        # input parameters for pdok-api
+        params = {
+            "q": "type:adres",
+            "lat": latitude,
+            "lon": longitude,
+            "rows": 1,
+            "fl": self.fields,
+        }
 
         # fetch date and return address
-        status, address_item = await self.fetch_data(url)
+        status, address_item = await self.fetch_data(url=self.api, params=params)
 
         return status, Location(**address_item)
 
-    async def fetch_data(self, url: str):
+    async def fetch_data(self, url: str, params: dict):
         """
         Get the data from PDOK
         :param url: api url to fetch
         """
+        address_item = {}
 
         # connect async to the pdok-api
         async with httpx.AsyncClient() as client:
-            result = await client.get(url, timeout=settings.FETCH_TIMEOUT)
 
-            if result.status_code == httpx.codes.OK:
-                status, address_item = self.list_to_location(result.json())
-            else:
+            # fetch the feature info
+            try:
+                result = await client.get(
+                    url=url, params=params, timeout=settings.FETCH_TIMEOUT
+                )
+                if result.status_code == httpx.codes.OK:
+                    status, address_item = self.list_to_location(result.json())
+                else:
+                    status = Errors.ERROR_PDOK_NO_RESP
+
+            except httpx.RequestError as exc:
+                logging.exception(
+                    f"Failed to connect to PDOK using {exc.request.url!r}"
+                )
                 status = Errors.ERROR_PDOK_NO_RESP
 
         # return status and address information
@@ -75,7 +94,7 @@ class PDOK():
         status = Errors.ERROR_GENERAL_NOER
 
         address_item = {}
-        response = out.get("response")
+        response = out.get("response", {})
 
         if response.get("numFound", 0) > 0:
             docs = response.get("docs")
@@ -95,10 +114,18 @@ class PDOK():
         :param doc_item: single pdok address
         """
 
-        rd = doc_item.get("centroide_rd", "0 0").replace("POINT(",
-                                                         "").replace(")", "").split(" ")
-        ll = doc_item.get("centroide_ll", "0 0").replace("POINT(",
-                                                         "").replace(")", "").split(" ")
+        rd = (
+            doc_item.get("centroide_rd", "0 0")
+            .replace("POINT(", "")
+            .replace(")", "")
+            .split(" ")
+        )
+        ll = (
+            doc_item.get("centroide_ll", "0 0")
+            .replace("POINT(", "")
+            .replace(")", "")
+            .split(" ")
+        )
 
         return {
             "latitude": float(ll[1]),

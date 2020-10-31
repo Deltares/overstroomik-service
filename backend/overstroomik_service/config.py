@@ -1,3 +1,4 @@
+import logging
 from typing import List, Union
 
 from pydantic import AnyHttpUrl, BaseSettings, validator
@@ -13,7 +14,15 @@ class Settings(BaseSettings):
     GEOSERVER_URL: str = "http://geoserver:8080/geoserver"
     GEOSERVER_LAYER: str = "overstroomik:Overstroomik_data"
 
+    WS_VERSION: str = "1.0.0"
     COMPOSE: bool = False
+
+    grouplayer_extent_rd: dict = {
+        "min_x": float(634),
+        "min_y": float(306594),
+        "max_x": float(284300),
+        "max_y": float(636981),
+    }
 
     data_layers: list = [
         {
@@ -29,7 +38,7 @@ class Settings(BaseSettings):
         {
             "property": "probability_of_flooding",
             "layer": "plaatsgebonden_kans_totaal_2019_0",
-            "field": "KLASSE@",
+            "field": "DUIDING",
         },
         {
             "property": "evacuation_percentage",
@@ -56,3 +65,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+logging.warning(settings)

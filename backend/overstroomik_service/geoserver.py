@@ -3,12 +3,14 @@ This class uses the geoserver-api and geoserver layers to find
 location information by rd coordinates
 """
 
-from typing import Optional
-import httpx
 import logging
+from typing import Optional
+
+import httpx
+
 from overstroomik_service.auto_models import Data
-from overstroomik_service.errors import Errors
 from overstroomik_service.config import settings
+from overstroomik_service.errors import Errors
 
 
 class Geoserver:
@@ -34,7 +36,7 @@ class Geoserver:
         data = Data()
 
         # create the getfeature info url
-        api_url, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
+        url, params, coordinate_is_valid, indices = Geoserver.get_api_url_from_rd(
             rd_x=rd_x, rd_y=rd_y, geoserver_url=geoserver_url
         )
 
@@ -47,7 +49,9 @@ class Geoserver:
 
                 # fetch the feature info
                 try:
-                    result = await client.get(api_url, timeout=settings.FETCH_TIMEOUT)
+                    result = await client.get(
+                        url=url, params=params, timeout=settings.FETCH_TIMEOUT
+                    )
                     if result.status_code == httpx.codes.OK:
                         out = result.json()
                         features = out.get("features")
@@ -55,8 +59,10 @@ class Geoserver:
                     else:
                         status = Errors.ERROR_GEOS_NO_RESP
 
-                except:
-                    logging.exception(f"Failed to connect to geoserver using {url}")
+                except httpx.RequestError as exc:
+                    logging.exception(
+                        f"Failed to connect to geoserver using {exc.request.url!r}"
+                    )
                     status = Errors.ERROR_GEOS_NO_RESP
 
         return status, data
@@ -130,17 +136,13 @@ class Geoserver:
         """
 
         # api url template
-        api_get_feature_info = (
-            f"{geoserver_url}/overstroomik/wms?SERVICE=WMS&VERSION=1.1.1"
-            f"&REQUEST=GetFeatureInfo&INFO_FORMAT=application/json&SRS=EPSG:28992&FEATURE_COUNT=50"
-            f"&LAYERS={layers}&QUERY_LAYERS={layers}"
-        )
+        url = f"{geoserver_url}/overstroomik/wms"
 
         # bounding box (extent of the group layer)
-        min_x = float(634)
-        min_y = float(306594)
-        max_x = float(284300)
-        max_y = float(636981)
+        min_x = settings.grouplayer_extent_rd["min_x"]
+        min_y = settings.grouplayer_extent_rd["min_y"]
+        max_x = settings.grouplayer_extent_rd["max_x"]
+        max_y = settings.grouplayer_extent_rd["max_y"]
 
         # test the input coordinate is in layer-extend
         coordinate_is_valid = (
@@ -164,9 +166,20 @@ class Geoserver:
 
         indices = (width, height, x, y)
 
-        api_url = (
-            f"{api_get_feature_info}&BBOX={bounding_box}&WIDTH={int(width)}"
-            f"&HEIGHT={int(height)}&X={int(x)}&Y={int(y)}"
-        )
+        params = {
+            "SERVICE": "WMS",
+            "VERSION": "1.1.1",
+            "REQUEST": "GetFeatureInfo",
+            "INFO_FORMAT": "application/json",
+            "SRS": "EPSG:28992",
+            "FEATURE_COUNT": "50",
+            "LAYERS": layers,
+            "QUERY_LAYERS": layers,
+            "BBOX": bounding_box,
+            "WIDTH": int(width),
+            "HEIGHT": int(height),
+            "X": int(x),
+            "Y": int(y),
+        }
 
-        return api_url, coordinate_is_valid, indices
+        return url, params, coordinate_is_valid, indices
