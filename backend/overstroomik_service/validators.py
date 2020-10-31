@@ -13,7 +13,7 @@ def validate_maximum_water_depth(cls, value):
     - everything above 50m as it's unrealistic (including inf)
     """
     # in the case that the value is a "100.0" we won't catch it
-    if isinstance(value, float):
+    if isinstance(value, (float, int)):
         if value < 0.01:
             value = 0.0
 
@@ -30,7 +30,7 @@ def validator_probability_of_flooding(cls, value):
         return value
     else:
         try:
-            return ProbabilityOfFlooding(value)
+            return ProbabilityOfFlooding(str(value).lower())
         except ValueError:
             logging.exception(f"Failed converting {value} into ProbabilityOfFlooding")
             return None
@@ -43,7 +43,7 @@ def validator_flood_type(cls, value):
         return value
     else:
         try:
-            return FloodType(value)
+            return FloodType(str(value).lower())
         except ValueError:
             logging.exception(f"Failed converting {value} into FloodType")
             return None
