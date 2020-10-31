@@ -1,1 +1,228 @@
-{"openapi":"3.0.0","info":{"title":"Overstroomik","description":"The overstroomik.nl backend service. Used to get information about how flood prone a location is in the Netherlands","contact":{"name":"Fedor Baart","email":"fedor.baart@deltares.nl"},"license":{"name":"GPL 3.0","url":"http://www.gnu.org/licenses/gpl-3.0.en.html"},"version":"1.0.0"},"servers":[{"url":"https://virtserver.swaggerhub.com/overstroomik/overstroomik.nl/1.0.0","description":"SwaggerHub API Auto Mocking"},{"url":"https://www.overstroomik.nl","description":"Production"}],"tags":[{"name":"developers","description":"Operations available to regular developers"}],"paths":{"/by_rd":{"get":{"tags":["developers"],"summary":"query the overstroomik.nl service by geospatial coordinates in EPSG:28992","description":"Query the overstroomik.nl service by coordinates (x,y) in Rijksdriehoekstelsel (EPSG:28992). Returns information about how flood prone the location is.\n","operationId":"by_rd","parameters":[{"name":"x","in":"query","description":"x coordinate in EPSG:28992 in meters\n","required":false,"style":"form","explode":true,"schema":{"type":"number","format":"double"},"example":160544.902},{"name":"y","in":"query","description":"y coordinate in EPSG:28992 in meters\n","required":false,"style":"form","explode":true,"schema":{"type":"number","format":"double"},"example":502115.495}],"responses":{"200":{"description":"Flooding information about the location","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FloodInfo"}}}},"400":{"description":"bad input parameter"}}}},"/by_location":{"get":{"tags":["developers"],"summary":"query the overstroomik.nl service by location","description":"Query the overstroomik.nl service by address, zipcode or latitude/longitude. Returns information about how flood prone the location is.\n","operationId":"by_location","parameters":[{"name":"search_field","in":"query","description":"content of the search/address field. Can contain a zipcode or a street/city combination, or just a city.\n","required":false,"style":"form","explode":true,"schema":{"type":"string"},"example":"8232JN"},{"name":"latitude","in":"query","description":"GeolocationCoordinates.latitude of the browser in decimal degrees\n","required":false,"style":"form","explode":true,"schema":{"maximum":9E+1,"minimum":-9E+1,"type":"number","format":"double"},"example":52.5066973961792},{"name":"longitude","in":"query","description":"GeolocationCoordinates.latitude of the browser in decimal degrees\n","required":false,"style":"form","explode":true,"schema":{"maximum":3.6E+2,"minimum":-1.8E+2,"type":"number","format":"double"},"example":5.46887674785145}],"responses":{"200":{"description":"Flooding information about the location","content":{"application/json":{"schema":{"$ref":"#/components/schemas/FloodInfo"}}}},"400":{"description":"bad input parameter"}}}}},"components":{"schemas":{"FloodInfo":{"required":["data","location","webservice"],"type":"object","properties":{"webservice":{"type":"object","properties":{"status":{"type":"string","example":"no-error"},"version":{"type":"string","example":"overstroomik webservice 1.0.0"}}},"location":{"type":"object","properties":{"search_field":{"type":"string","description":"content of original search field\n","example":"8232JN"},"latitude":{"maximum":9E+1,"minimum":-9E+1,"type":"number","description":"geocoded location\n","example":52.5066973961792},"longitude":{"maximum":3.6E+2,"minimum":0,"type":"number","description":"geocoded location longitude\n","example":5.46887674785145},"rd_x":{"type":"number","description":"x coordinate in meters, geocoded location longitude transformed into EPSG:28992 \n","example":160544.902},"rd_y":{"type":"number","description":"y coordinate in meters, geocoded location latitude transformed into EPSG:28992\n","example":502115.495},"address":{"type":"string","description":"geocoded adress (street/house number)\n","example":"Botter 11"},"municipality":{"type":"string","description":"geocoded adress (municipality)\n","example":"Lelystad"},"zipcode":{"pattern":"\\d{4}[A-Z]{2}","type":"string","description":"geocoded zipcode \n","example":"8232JN"}}},"data":{"type":"object","properties":{"flood_type":{"type":"string","example":"dijkring"},"maximum_water_depth":{"type":"number","description":"maximum water depth in meters\n","example":3.2242},"probability_of_flooding":{"maximum":1,"minimum":0,"type":"number","description":"expected frequency per year for flooding\n","example":0.45},"evacuation_percentage":{"type":"number","example":35},"safety_board_id":{"type":"integer","example":12}}}}}}}}
+openapi: 3.0.0
+info:
+  title: Overstroomik
+  description: The overstroomik.nl backend service. Used to get information about how flood prone a location is in the Netherlands
+  contact:
+    name: Fedor Baart
+    email: fedor.baart@deltares.nl
+  license:
+    name: GPL 3.0
+    url: http://www.gnu.org/licenses/gpl-3.0.en.html
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/overstroomik/overstroomik.nl/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: https://www.overstroomik.nl
+  description: Production
+tags:
+- name: developers
+  description: Operations available to regular developers
+paths:
+  /by_rd:
+    get:
+      tags:
+      - developers
+      summary: query the overstroomik.nl service by geospatial coordinates in EPSG:28992
+      description: |
+        Query the overstroomik.nl service by coordinates (x,y) in Rijksdriehoekstelsel (EPSG:28992). Returns information about how flood prone the location is.
+      operationId: by_rd
+      parameters:
+      - name: x
+        in: query
+        description: |
+          x coordinate in EPSG:28992 in meters
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          format: double
+        example: 160544.902
+      - name: "y"
+        in: query
+        description: |
+          y coordinate in EPSG:28992 in meters
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: number
+          format: double
+        example: 502115.495
+      responses:
+        "200":
+          description: Flooding information about the location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloodInfo'
+        "400":
+          description: bad input parameter
+  /by_location:
+    get:
+      tags:
+      - developers
+      summary: query the overstroomik.nl service by location
+      description: |
+        Query the overstroomik.nl service by address, zipcode or latitude/longitude. Returns information about how flood prone the location is.
+      operationId: by_location
+      parameters:
+      - name: search_field
+        in: query
+        description: |
+          content of the search/address field. Can contain a zipcode or a street/city combination, or just a city.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+        example: 8232JN
+      - name: latitude
+        in: query
+        description: |
+          GeolocationCoordinates.latitude of the browser in decimal degrees
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 90
+          minimum: -90
+          type: number
+          format: double
+        example: 52.5066973961792
+      - name: longitude
+        in: query
+        description: |
+          GeolocationCoordinates.latitude of the browser in decimal degrees
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 360
+          minimum: -180
+          type: number
+          format: double
+        example: 5.46887674785145
+      responses:
+        "200":
+          description: Flooding information about the location
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FloodInfo'
+        "400":
+          description: bad input parameter
+components:
+  schemas:
+    FloodInfo:
+      required:
+      - data
+      - location
+      - webservice
+      type: object
+      properties:
+        webservice:
+          type: object
+          properties:
+            status:
+              type: string
+              example: no-error
+            version:
+              type: string
+              example: overstroomik webservice 1.0.0
+        location:
+          type: object
+          properties:
+            search_field:
+              type: string
+              description: |
+                content of original search field
+              example: 8232JN
+            latitude:
+              maximum: 90
+              minimum: -90
+              type: number
+              description: |
+                geocoded location
+              example: 52.5066973961792
+            longitude:
+              maximum: 360
+              minimum: 0
+              type: number
+              description: |
+                geocoded location longitude
+              example: 5.46887674785145
+            rd_x:
+              type: number
+              description: "x coordinate in meters, geocoded location longitude transformed into EPSG:28992 \n"
+              example: 160544.902
+            rd_y:
+              type: number
+              description: |
+                y coordinate in meters, geocoded location latitude transformed into EPSG:28992
+              example: 502115.495
+            address:
+              type: string
+              description: |
+                geocoded adress (street/house number)
+              example: Botter 11
+            municipality:
+              type: string
+              description: |
+                geocoded adress (municipality)
+              example: Lelystad
+            zipcode:
+              pattern: \d{4}[A-Z]{2}
+              type: string
+              description: "geocoded zipcode \n"
+              example: 8232JN
+        data:
+          type: object
+          properties:
+            flood_type:
+              type: string
+              description: |
+                type of flooding area
+              example: binnen dijkring, mogelijk overstroombaar
+              enum:
+              - binnen dijkring, mogelijk overstroombaar
+              - buiten dijkring, geen hogegrond (buitendijks of buiten water)
+              - buiten dijkring, hogegrond
+            maximum_water_depth:
+              minimum: 0
+              type: number
+              description: |
+                maximum water depth in meters
+              format: double
+              example: 3.2242
+            probability_of_flooding:
+              type: string
+              description: |
+                expected frequency per year for flooding
+              nullable: true
+              example: 'kleine kans: 1/300 tot 1/3.000 per jaar'
+              enum:
+              - geen significante overstromingskans
+              - 'grote kans: > 1/30 per jaar'
+              - 'middelgrote kans: 1/30 tot 1/300 per jaar'
+              - 'kleine kans: 1/300 tot 1/3.000 per jaar'
+              - 'zeer kleine kans: 1/3.000 tot 1/30.000 per jaar'
+              - 'extreem kleine kans: < 1/30.000 per jaar'
+            evacuation_percentage:
+              maximum: 100
+              minimum: 0
+              type: number
+              description: |
+                expected evacuation percentage
+                if percentage ≤ 20 then ‘vrijwel niemand kan het gebied verlaten’
+                if percentage ≤ 40 then ‘een klein deel kan het gebied verlaten’
+                if percentage ≤ 60 then ‘ongeveer de helft kan het gebied verlaten’
+                if percentage ≤ 80 then ‘een groot deel kan het gebied verlaten’
+                if percentage > 80 then ‘vrijwel iedereen kan het gebied verlaten’
+              format: double
+              example: 35
+            safety_board_id:
+              type: integer
+              description: |
+                unique id of safety board
+              example: 12
