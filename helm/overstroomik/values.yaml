@@ -7,7 +7,7 @@ replicaCount: 1
 images:
   geoserver:
     repository: deltares/overstroomik-geoserver
-    tag: "fix-helm"
+    tag: "latest"
   backend: deltares/overstroomik-service
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -19,7 +19,7 @@ geoserver:
   podAnnotations: {}
 
   service:
-    type: NodePort
+    type: ClusterIP
     port: 8080
 
   autoscaling:
@@ -36,7 +36,7 @@ backend:
   podAnnotations: {}
 
   service:
-    type: NodePort
+    type: ClusterIP
     port: 80
 
   autoscaling:
@@ -57,8 +57,8 @@ ingress:
   # kubernetes.io/ingress.global-static-ip-name: "overstroomik-static-ip"
   services:
     - name: overstroomik-geoserver
-      path: /geoserver/*
+      path: /geoserver/
       port: 8080
     - name: overstroomik-backend
-      path: /*
+      path: /
       port: 80
