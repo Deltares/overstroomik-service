@@ -52,10 +52,10 @@ backend:
 ingress:
   host: overstroomik.cloud.google.com
   enabled: true
-  annotations: {}
-  # gcloud compute addresses create overstroomik-static-ip --global
-  # gcloud endpoints services deploy openapi.yaml
-  # kubernetes.io/ingress.global-static-ip-name: "overstroomik-static-ip"
+  annotations:
+    # gcloud compute addresses create overstroomik-static-ip --global
+    # gcloud endpoints services deploy openapi.yaml
+    kubernetes.io/ingress.global-static-ip-name: "overstroomik-static-ip"
   services:
     - name: overstroomik-geoserver
       path: /geoserver/*

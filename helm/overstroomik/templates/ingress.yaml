@@ -11,13 +11,12 @@ metadata:
   {{- end }}
 spec:
   rules:
-  - host: {{ .Values.ingress.host }}
-    http:
-      paths:
-      {{- range .Values.ingress.services}}
-      - path: {{ .path }}
-        backend:
-          serviceName: {{ .name }}
-          servicePort: {{ .port }}
-      {{- end }}
+    - http:
+        paths:
+        {{- range .Values.ingress.services}}
+        - path: {{ .path }}
+          backend:
+            serviceName: {{ .name }}
+            servicePort: {{ .port }}
+        {{- end }}
 {{- end }}
