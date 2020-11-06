@@ -23,7 +23,7 @@ app.add_middleware(
 @app.get("/")
 async def read_root():
     return Webservice(
-        version=settings.WS_VERSION, status=str(Errors.ERROR_GENERAL_NOER)
+        version=settings.WS_VERSION, status=Errors.ERROR_GENERAL_IMEP.value
     )
 
 
@@ -35,7 +35,7 @@ async def by_rd(x: float, y: float) -> FloodInfo:
 
     # Return location details
     return FloodInfo(
-        webservice=Webservice(version=settings.WS_VERSION, status=str(status)),
+        webservice=Webservice(version=settings.WS_VERSION, status=status.value),
         location=Location(rd_x=x, rd_y=y),
         data=data,
     )
@@ -60,7 +60,7 @@ async def by_location(
         status, location = await pdok.address_by_latlon(latitude, longitude)
     else:
         # No valid input for search_field or latitude and longitude
-        raise HTTPException(status_code=422, detail=str(Errors.ERROR_BY_LOCATION_422))
+        raise HTTPException(status_code=422, detail=Errors.ERROR_BY_LOCATION_422.value)
 
     data = Data()
 
@@ -70,7 +70,7 @@ async def by_location(
 
     # Return location details
     return FloodInfo(
-        webservice=Webservice(version=settings.WS_VERSION, status=str(status)),
+        webservice=Webservice(version=settings.WS_VERSION, status=status.value),
         location=location,
         data=data,
     )
