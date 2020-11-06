@@ -70,7 +70,7 @@ class Geoserver:
                     logging.exception(
                         f"Failed to parse result into json format"
                     )
-                    status = Errors.ERROR_GEOS_NO_RESP
+                    status = Errors.ERROR_GEOS_NO_SMAP
                     
                 except:
                     e = sys.exc_info()[0]
