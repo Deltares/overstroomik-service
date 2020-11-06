@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class Errors(Enum):
+    ERROR_GENERAL_IMEP = "Invalid or missing endpoint request"
     ERROR_GENERAL_NOER = "No error"
     ERROR_GENERAL_ERRO = "Service not available"
     ERROR_OUT_OF_BOUND = "Location is out of bounds"

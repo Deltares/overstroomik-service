@@ -39,6 +39,19 @@ async def test_get_data() -> None:
     assert data.safety_board_id == 25
 
 
+@pytest.mark.asyncio
+async def test_out_of_bounds() -> None:
+    """
+    Test a valid situation with expected values
+    """
+
+    status, data = await Geoserver.get_data(
+        rd_x=158492.416, rd_y=0, geoserver_url=settings.GEOSERVER_URL,
+    )
+
+    assert status == Errors.ERROR_OUT_OF_BOUND
+
+
 @pytest.mark.skipif(
     (not settings.COMPOSE),
     reason="requires geoserver with docker-compose (see COMPOSE env)",

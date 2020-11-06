@@ -7,6 +7,7 @@ import logging
 from typing import Optional
 
 import httpx
+import sys
 
 from overstroomik_service.auto_models import Data
 from overstroomik_service.config import settings
@@ -42,7 +43,7 @@ class Geoserver:
 
         # Check input, is location between the layer exent
         if not coordinate_is_valid:
-            status = Errors.ERROR_GEOS_NO_SMAP
+            status = Errors.ERROR_OUT_OF_BOUND
         else:
             # connect async to the geoserver
             async with httpx.AsyncClient() as client:
@@ -62,6 +63,19 @@ class Geoserver:
                 except httpx.RequestError as exc:
                     logging.exception(
                         f"Failed to connect to geoserver using {exc.request.url!r}"
+                    )
+                    status = Errors.ERROR_GEOS_NO_RESP
+
+                except ValueError as vexc:                                        
+                    logging.exception(
+                        f"Failed to parse result into json format"
+                    )
+                    status = Errors.ERROR_GEOS_NO_SMAP
+                    
+                except:
+                    e = sys.exc_info()[0]
+                    logging.exception(
+                        f"Failed to connect to geoserver or parse result: {e}"
                     )
                     status = Errors.ERROR_GEOS_NO_RESP
 
