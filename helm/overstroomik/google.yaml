@@ -19,7 +19,7 @@ geoserver:
   podAnnotations: {}
 
   service:
-    type: ClusterIP
+    type: NodePort
     port: 8080
 
   autoscaling:
@@ -36,7 +36,7 @@ backend:
   podAnnotations: {}
 
   service:
-    type: ClusterIP
+    type: NodePort
     port: 80
 
   autoscaling:
@@ -50,7 +50,7 @@ backend:
   geoserver_env: GEOSERVER_URL
 
 ingress:
-  host: overstroomik.k8s.shared.cnap.intranet.rws.nl
+  host: overstroomik.cloud.google.com
   enabled: true
   annotations: {}
   # gcloud compute addresses create overstroomik-static-ip --global
@@ -58,8 +58,8 @@ ingress:
   # kubernetes.io/ingress.global-static-ip-name: "overstroomik-static-ip"
   services:
     - name: overstroomik-geoserver
-      path: /geoserver/
+      path: /geoserver/*
       port: 8080
     - name: overstroomik-backend
-      path: /
+      path: /*
       port: 80

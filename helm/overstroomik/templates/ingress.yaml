@@ -11,7 +11,7 @@ metadata:
   {{- end }}
 spec:
   rules:
-  - host: overstroomik.k8s.shared.cnap.intranet.rws.nl
+  - host: {{ .Values.ingress.host }}
     http:
       paths:
       {{- range .Values.ingress.services}}
@@ -21,4 +21,3 @@ spec:
           servicePort: {{ .port }}
       {{- end }}
 {{- end }}
-
