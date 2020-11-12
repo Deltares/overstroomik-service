@@ -27,7 +27,7 @@ spec:
           ports:
             - containerPort: 80
           env:
-            {{- range $key, $value =: .Values.backend.environment_variables }}
+            {{- range $key, $value := .Values.backend.environment_variables }}
             - name: {{ $key }}
               value: {{ $value }}
             {{- end }}
