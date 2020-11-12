@@ -47,7 +47,9 @@ backend:
     # targetMemoryUtilizationPercentage: 80
 
   resources: {}
-  geoserver_env: GEOSERVER_URL
+  environment_variables:
+    GEOSERVER_URL: overstroomik-geoserver:8080/geoserver
+    https: webproxy.rws.nl:8080
 
 ingress:
   host: overstroomik.k8s.shared.cnap.intranet.rws.nl

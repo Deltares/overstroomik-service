@@ -27,7 +27,9 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: {{ .Values.backend.geoserver_env }}
-              value: http://{{ .Values.geoserver.name }}:8080/geoserver
+            {{- range $key, $value =: .Values.backend.environment_variables }}
+            - name: {{ $key }}
+              value: {{ $value }}
+            {{- end }}
           resources:
             {{- toYaml .Values.backend.resources | nindent 12 }}
