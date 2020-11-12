@@ -7,7 +7,7 @@ replicaCount: 1
 images:
   geoserver:
     repository: deltares/overstroomik-geoserver
-    tag: "latest"
+    tag: "0.1"
   backend: deltares/overstroomik-service
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -48,7 +48,7 @@ backend:
 
   resources: {}
   environment_variables:
-    GEOSERVER_URL: overstroomik-geoserver:8080/geoserver
+    GEOSERVER_URL: http://overstroomik-geoserver:8080/geoserver
     https_proxy: webproxy.rws.nl:8080
 
 ingress:
