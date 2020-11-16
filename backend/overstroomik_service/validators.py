@@ -1,5 +1,5 @@
 import logging
-from cgi import escape
+from html import escape
 from pydantic.class_validators import Validator
 
 from .auto_models import Data, FloodType, ProbabilityOfFlooding, Location

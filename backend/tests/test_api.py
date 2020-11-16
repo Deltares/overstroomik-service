@@ -20,4 +20,7 @@ def test_location() -> None:
     assert response.status_code == 200
     content = response.json()
     assert "location" in content
-    assert content.get("location", {}).get("search_field") == "8243LP&amp;lt;&amp;gt;'"
+    assert (
+        content.get("location", {}).get("search_field")
+        == "8243LP&amp;lt;&amp;gt;&amp;#x27;"
+    )
