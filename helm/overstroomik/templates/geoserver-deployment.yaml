@@ -30,6 +30,10 @@ spec:
             {{- toYaml .Values.geoserver.resources | nindent 12 }}
           readinessProbe:
             httpGet:
-              path: /geoserver
+              path: /geoserver/web/
               port: 8080
               scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            failureThreshold: 5
+

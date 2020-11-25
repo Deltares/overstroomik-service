@@ -52,6 +52,7 @@ backend:
     https_proxy: webproxy.rws.nl:8080
 
 ingress:
+  environment: rws
   host: overstroomik.k8s.shared.cnap.intranet.rws.nl
   enabled: true
   annotations: {}
