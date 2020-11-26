@@ -1,5 +1,15 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
+# This version builds on top of:
+# - buster (debian)
+# - python
+# - tiangolo/uvicorn-gunicorn
+# - tiangolo/uvicorn-gunicorn-fastapi
+
+# These last 2 images are not always up to date so we do an extra update step
+#  update and cleanup
+RUN apt-get update && apt-get -y upgrade && apt-get clean && rm -rf /var/lib/apt/lists/*
+
 WORKDIR .
 COPY . /app
 

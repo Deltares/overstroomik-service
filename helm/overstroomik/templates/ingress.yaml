@@ -11,7 +11,12 @@ metadata:
   {{- end }}
 spec:
   rules:
+  {{- if eq .Values.ingress.environment "rws" }}
+  - host: {{ .Values.ingress.host }}
+    http:
+  {{- else if eq .Values.ingress.environment "google"}}
   - http:
+  {{- end}}
       paths:
       {{- range .Values.ingress.services}}
       - path: {{ .path }}
@@ -20,4 +25,3 @@ spec:
           servicePort: {{ .port }}
       {{- end }}
 {{- end }}
-

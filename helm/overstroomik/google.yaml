@@ -7,7 +7,7 @@ replicaCount: 1
 images:
   geoserver:
     repository: deltares/overstroomik-geoserver
-    tag: "0.1"
+    tag: "latest"
   backend: deltares/overstroomik-service
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -19,14 +19,14 @@ geoserver:
   podAnnotations: {}
 
   service:
-    type: ClusterIP
+    type: NodePort
     port: 8080
 
   autoscaling:
-    enabled: false
+    enabled: true
     minReplicas: 1
-    maxReplicas: 100
-    targetCPUUtilizationPercentage: 80
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 40
     # targetMemoryUtilizationPercentage: 80
 
   resources: {}
@@ -36,33 +36,32 @@ backend:
   podAnnotations: {}
 
   service:
-    type: ClusterIP
+    type: NodePort
     port: 80
 
   autoscaling:
-    enabled: false
+    enabled: true
     minReplicas: 1
-    maxReplicas: 100
-    targetCPUUtilizationPercentage: 80
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 40
     # targetMemoryUtilizationPercentage: 80
 
   resources: {}
   environment_variables:
     GEOSERVER_URL: http://overstroomik-geoserver:8080/geoserver
-    https_proxy: webproxy.rws.nl:8080
+    https_proxy: null
 
 ingress:
-  environment: rws
-  host: overstroomik.k8s.shared.cnap.intranet.rws.nl
+  environment: google
   enabled: true
-  annotations: {}
-  # gcloud compute addresses create overstroomik-static-ip --global
-  # gcloud endpoints services deploy openapi.yaml
-  # kubernetes.io/ingress.global-static-ip-name: "overstroomik-static-ip"
+  annotations:
+    # gcloud compute addresses create overstroomik-static-ip --global
+    # gcloud endpoints services deploy openapi.yaml
+    kubernetes.io/ingress.global-static-ip-name: "overstroomik-static-ip"
   services:
     - name: overstroomik-geoserver
-      path: /geoserver/
+      path: /geoserver/*
       port: 8080
     - name: overstroomik-backend
-      path: /
+      path: /*
       port: 80
