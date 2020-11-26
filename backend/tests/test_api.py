@@ -10,8 +10,8 @@ def test_location_lon() -> None:
     response = client.get("/by_location", params=dict(longitude=longitude))
     assert response.status_code == 422
     content = response.json()
-    assert "location" in content
-    assert content.get("location", {}).get("longitude") == longitude
+    assert "detail" in content
+    assert "No valid input" in content.get("detail", "")
 
 
 def test_location_latlon() -> None:
@@ -23,7 +23,6 @@ def test_location_latlon() -> None:
     assert response.status_code == 200
     content = response.json()
     assert "location" in content
-    assert content.get("location", {}).get("longitude") == longitude
 
 
 def test_location_searchfield() -> None:
