@@ -27,7 +27,7 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            {{- range .Values.frontend.environment_variables }}
+            {{- range .Values.geoserver.environment_variables }}
             - name: {{ .key }}
               value: {{ .value }}
             {{- end }}
