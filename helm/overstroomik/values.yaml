@@ -59,7 +59,7 @@ backend:
 
 ingress:
   environment: rws
-  name: overstroomik-test
+  name: overstroomik
   host: overstroomik.k8s.shared.cnap.intranet.rws.nl
   enabled: true
   annotations: {}
