@@ -27,7 +27,7 @@ spec:
           ports:
             - containerPort: 80
           env:
-            {{- range .Values.frontend.environment_variables }}
+            {{- range .Values.backend.environment_variables }}
             - name: {{ .key }}
               value: {{ .value }}
             {{- end }}
