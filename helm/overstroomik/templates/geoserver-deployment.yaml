@@ -26,6 +26,11 @@ spec:
           imagePullPolicy: {{ .Values.images.pullPolicy }}
           ports:
             - containerPort: 8080
+          env:
+            {{- range .Values.frontend.environment_variables }}
+            - name: {{ .key }}
+              value: {{ .value }}
+            {{- end }}
           resources:
             {{- toYaml .Values.geoserver.resources | nindent 12 }}
           readinessProbe:

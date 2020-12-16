@@ -31,6 +31,10 @@ geoserver:
 
   resources: {}
 
+  environment_variables:
+    - key: JAVA_OPTS
+      value: "-Xms8192m -Xmx8192m -Xss4m"
+
 backend:
   name: "overstroomik-backend"
   podAnnotations: {}
@@ -48,11 +52,14 @@ backend:
 
   resources: {}
   environment_variables:
-    GEOSERVER_URL: http://overstroomik-geoserver:8080/geoserver
-    https_proxy: webproxy.rws.nl:8080
+    - key: https_proxy
+      value: webproxy.rws.nl:8080
+    - key: GEOSERVER_URL
+      value: http://overstroomik-geoserver:8080/geoserver
 
 ingress:
   environment: rws
+  name: overstroomik-test
   host: overstroomik.k8s.shared.cnap.intranet.rws.nl
   enabled: true
   annotations: {}
