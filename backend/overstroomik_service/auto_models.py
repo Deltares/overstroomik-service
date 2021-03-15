@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, confloat, constr
 
 
 class Webservice(BaseModel):
+    errorcode: Optional[float] = Field(None, example=0)
     status: Optional[str] = Field(None, example="no-error")
     version: Optional[str] = Field(None, example="overstroomik webservice 1.0.0")
 
