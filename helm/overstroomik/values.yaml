@@ -33,7 +33,7 @@ geoserver:
 
   environment_variables:
     - key: JAVA_OPTS
-      value: "-Xms8192m -Xmx8192m -Xss4m"
+      value: "-Xms8192m -Xmx8192m -Xss4m -DGEOSERVER_CONSOLE_DISABLED=true"
 
 backend:
   name: "overstroomik-backend"
