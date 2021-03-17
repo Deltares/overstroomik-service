@@ -24,7 +24,7 @@ jobs:
         run: docker-compose exec -T backend bash scripts/test.sh
         
   release:
-    if: ${{ github.ref == 'master' }}
+    if: github.ref == 'master'
     needs: test
     runs-on: ubuntu-latest
     steps:
