@@ -16,7 +16,7 @@ jobs:
       - name: Build the stack
         run: docker-compose up -d --build
       - name: Test
-        run: docker-compose exec backend bash scripts/test.sh
+        run: docker-compose exec -T backend bash scripts/test.sh
         
   release:
     if: ${{ github.ref == 'master' }}
