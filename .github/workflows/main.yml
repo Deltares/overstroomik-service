@@ -9,16 +9,10 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      DOCKER_IMAGE_BACKEND: deltares/overstroomik-service
-      DOCKER_IMAGE_GEOSERVER: deltares/overstroomik-geoserver
-      DOMAIN: localhost
-      BACKEND_CORS_ORIGINS: '["http://localhost", "http://localhost:4200", "http://localhost:3000", "http://localhost:8080", "https://localhost", "https://localhost:4200", "https://localhost:3000", "https://localhost:8080", "http://dev.asd.com", "https://stag.asd.com", "https://asd.com", "http://local.dockertoolbox.tiangolo.com", "http://localhost.tiangolo.com"]'
-      INSTALL_DEV: true
-      COMPOSE: true
-      FETCH_TIMEOUT: 60
     steps:
       - uses: actions/checkout@v2
+      - name: set environment variables
+        run: mv .env.example .env
       - name: Build the stack
         run: docker-compose up -d --build
       - name: Test
