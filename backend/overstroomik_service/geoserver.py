@@ -60,18 +60,18 @@ class Geoserver:
                     else:
                         status = Errors.ERROR_GEOS_NO_RESP
 
-                except httpx.RequestError as exc:
-                    logging.exception(
-                        f"Failed to connect to geoserver using {exc.request.url!r}"
-                    )
-                    status = Errors.ERROR_GEOS_NO_RESP
+                # except httpx.RequestError as exc:
+                #     logging.exception(
+                #         f"Failed to connect to geoserver using {exc.request.url!r}"
+                #     )
+                #     status = Errors.ERROR_GEOS_NO_RESP
 
-                except ValueError as vexc:                                        
+                except ValueError as vexc:
                     logging.exception(
                         f"Failed to parse result into json format"
                     )
                     status = Errors.ERROR_GEOS_NO_SMAP
-                    
+
                 except:
                     e = sys.exc_info()[0]
                     logging.exception(
