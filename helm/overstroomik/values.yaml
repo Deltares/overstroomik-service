@@ -32,8 +32,8 @@ geoserver:
   resources: {}
 
   environment_variables:
-    - key: JAVA_OPTS
-      value: "-Xms8192m -Xmx8192m -Xss4m -DGEOSERVER_CONSOLE_DISABLED=true"
+    - key: CATALINA_OPTS
+      value: "-server -Djava.awt.headless=true -Xms8192m -Xmx8192m -Xss4m -XX:+UseConcMarkSweepGC -XX:NewSize=48m -DGEOSERVER_DATA_DIR=/var/local/geoserver -DGEOSERVER_CONSOLE_DISABLED=true"      
 
 backend:
   name: "overstroomik-backend"
