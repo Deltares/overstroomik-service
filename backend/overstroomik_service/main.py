@@ -11,7 +11,7 @@ from overstroomik_service.errors import Errors
 from overstroomik_service.geoserver import Geoserver
 from overstroomik_service.pdok import PDOK
 
-app = FastAPI()
+app = FastAPI(openapi_url=settings.openapi_url)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
