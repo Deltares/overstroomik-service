@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     FETCH_TIMEOUT: float = 10.0
     GEOSERVER_URL: str = "http://geoserver:8080/geoserver"
     GEOSERVER_LAYER: str = "overstroomik:Overstroomik_data"
+    openapi_url: str = "/openapi.json"
 
     WS_VERSION: str = "1.0.0"
     COMPOSE: bool = False
