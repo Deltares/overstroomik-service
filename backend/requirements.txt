@@ -1,4 +1,6 @@
 uvicorn
 fastapi
 pydantic[dotenv]
-httpx==0.16.*
+httpx
+setuptools==65.5.1
+starlette==0.25.0
