@@ -8,7 +8,10 @@ RUN apt-get update && apt-get -y upgrade && apt-get clean && rm -rf /var/lib/apt
 RUN rm /usr/local/geoserver/WEB-INF/lib/h2-1.1.119.jar
 RUN rm -rf /usr/local/tomcat/webapps.dist/*
 
+# copy data to the geoserver folder
+COPY data_dir/ /var/local/geoserver
+
 # tomcat user right for log
 RUN chown -R tomcat:tomcat /var/local/geoserver 
 
-COPY data_dir/ /var/local/geoserver
+
