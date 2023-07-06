@@ -14,7 +14,7 @@ from overstroomik_service.errors import Errors
 class PDOK:
 
     # pdok api url
-    api = "https://geodata.nationaalgeoregister.nl/locatieserver/v3/free"
+    api = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free"
 
     # fields we need
     fields = "centroide_rd,centroide_ll,straatnaam,woonplaatsnaam,postcode"

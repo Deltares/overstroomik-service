@@ -12,7 +12,7 @@ async def test_address_by_search_field_zip_code() -> None:
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert location.latitude == 52.50669969
-    assert location.longitude == 5.46887432
+    assert location.longitude == 5.46887425 #5.46887432
     assert location.rd_x == 160544.902
     assert location.rd_y == 502115.495
     assert location.search_field == "8232JN"
@@ -30,7 +30,7 @@ async def test_address_by_latlon() -> None:
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert location.latitude == 52.50669597
-    assert location.longitude == 5.46888296
+    assert location.longitude == 5.46888289
     assert location.rd_x == 160545.489
     assert location.rd_y == 502115.081
     assert location.search_field is None
@@ -43,7 +43,8 @@ async def test_address_by_latlon() -> None:
 async def test_fetch_data() -> None:
     pdok = PDOK()
 
-    url = "https://geodata.nationaalgeoregister.nl/locatieserver/v3/free"
+    url = "https://api.pdok.nl/bzk/locatieserver/search/v3_1/free"
+
     fields = "centroide_rd,centroide_ll,straatnaam,woonplaatsnaam,postcode"
 
     latitude = 52.50669969
@@ -61,7 +62,7 @@ async def test_fetch_data() -> None:
 
     assert status == Errors.ERROR_GENERAL_NOER
     assert adress_item.get("latitude", 0) == 52.50669597
-    assert adress_item.get("longitude", 0) == 5.46888296
+    assert adress_item.get("longitude", 0) == 5.46888289 #5.46888296
     assert adress_item.get("address", "") == "Botter 11"
     assert adress_item.get("municipality", "") == "Lelystad"
     assert adress_item.get("zipcode", "") == "8232JN"
