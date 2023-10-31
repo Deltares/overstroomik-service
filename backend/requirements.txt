@@ -3,4 +3,4 @@ fastapi
 pydantic[dotenv]
 httpx
 setuptools==65.5.1
-starlette==0.25.0
+starlette==0.30.0
